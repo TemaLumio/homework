@@ -241,6 +241,7 @@
       <div class="card" id="reportCard">
         <h2>📄 Homework reports</h2>
         <p class="tip">Finished for today? Make the PDFs here and send them to Dad.</p>
+        <div class="feedback" id="recorded"></div>
         <p class="tip">Makes two PDFs — SPAG and Maths — with your results and all your answers (handwriting included). Then press “Send to Dad” and choose Messages or Mail.</p>
         <div class="row">
           <input id="childName" placeholder="Child's name" style="flex:1 1 140px;font:700 1rem var(--body);padding:10px;border-radius:12px;border:2px solid var(--line);background:var(--bg);color:var(--fg)">
@@ -583,7 +584,8 @@ function makeInk(host, key, opts = {}) {
   const penB = host.querySelector('.pen'), erB = host.querySelector('.erase');
   const setMode = e => { erasing = e; penB.setAttribute('aria-pressed', !e); erB.setAttribute('aria-pressed', e); penB.style.background = e ? '' : 'var(--sun-soft)'; erB.style.background = e ? 'var(--sun-soft)' : ''; };
   penB.onclick = () => setMode(false); erB.onclick = () => setMode(true); setMode(false);
-  function size() { const r = cv.getBoundingClientRect(), d = devicePixelRatio || 1; if (cv.width !== Math.round(r.width * d)) { cv.width = Math.round(r.width * d); cv.height = Math.round(r.height * d); } return r; }
+  let lastRect = { width: 800, height: 260 };
+  function size() { const r = cv.getBoundingClientRect(), d = devicePixelRatio || 1; if (r.width > 0 && r.height > 0) lastRect = { width: r.width, height: r.height }; if (cv.width !== Math.round(r.width * d)) { cv.width = Math.round(r.width * d); cv.height = Math.round(r.height * d); } return r; }
   function draw() {
     const r = size(), d = devicePixelRatio || 1; ctx.setTransform(d, 0, 0, d, 0, 0); ctx.clearRect(0, 0, r.width, r.height);
     // background: squared grid for maths, ruled lines for writing
@@ -612,8 +614,8 @@ function makeInk(host, key, opts = {}) {
   new ResizeObserver(draw).observe(cv); draw();
   return {
     hasInk: () => strokes.some(s => !s.e && s.p.length > 1),
-    toImage: () => { // white background, for Claude and the PDF
-      const r = cv.getBoundingClientRect(), out = document.createElement('canvas'), d = 2; out.width = r.width * d; out.height = r.height * d;
+    toImage: () => { // white background, for the PDF; independent of whether the canvas is currently visible
+      const rr = cv.getBoundingClientRect(); const r = (rr.width > 0 && rr.height > 0) ? rr : lastRect; const out = document.createElement('canvas'), d = 2; out.width = Math.round(r.width * d); out.height = Math.round(r.height * d);
       const c = out.getContext('2d'); c.fillStyle = '#fff'; c.fillRect(0, 0, out.width, out.height); c.scale(d, d); c.lineCap = 'round'; c.lineJoin = 'round';
       if (opts.grid) { const cell = opts.cell || 36; c.strokeStyle = '#d8d8d8'; c.lineWidth = 0.6; for (let x = cell; x < r.width; x += cell) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, r.height); c.stroke(); } for (let y = cell; y < r.height; y += cell) { c.beginPath(); c.moveTo(0, y); c.lineTo(r.width, y); c.stroke(); } }
       for (const s of strokes) { c.globalCompositeOperation = s.e ? 'destination-out' : 'source-over'; c.strokeStyle = '#1b2a4a'; c.lineWidth = s.e ? 24 : 2.6; c.beginPath(); s.p.forEach(([x, y], i) => { i ? c.lineTo(x * r.width, y * r.height) : c.moveTo(x * r.width, y * r.height); }); c.stroke(); }
@@ -674,7 +676,7 @@ function renderMaths() {
   $('ttVerdict').textContent = saved.score != null ? `Last time: ${saved.score} / ${tt.length}` : '';
   $('ttCheck').onclick = () => {
     let ok = 0; const answers = [], wrong = [];
-    grid.querySelectorAll('label').forEach((l, i) => { const v = num(l.querySelector('input').value); answers[i] = l.querySelector('input').value; const good = v === tt[i].a; l.classList.toggle('ok', good); l.classList.toggle('bad', !good); if (good) ok++; else wrong.push(tt[i].q + ' = ' + tt[i].a); });
+    grid.querySelectorAll('label').forEach((l, i) => { const v = num(l.querySelector('input').value); answers[i] = l.querySelector('input').value; const good = v === tt[i].a; l.classList.toggle('ok', good); l.classList.toggle('bad', !good); if (good) ok++; else wrong.push(tt[i].q.includes('=') ? tt[i].q + ' (☐ = ' + tt[i].a + ')' : tt[i].q + ' = ' + tt[i].a); });
     clearInterval(ttTimer); const secs = ttStart ? Math.round((Date.now() - ttStart) / 1000) : null;
     $('ttVerdict').textContent = `${ok} / ${tt.length}` + (secs ? ` in ${secs} s` : '') + (ok === tt.length ? ' — perfect! 🏆' : ok >= tt.length * .8 ? ' — well done!' : ' — keep practising the red ones.');
     $('ttVerdict').className = 'verdict ' + (ok >= tt.length * .8 ? 'ok' : 'bad');
@@ -727,6 +729,7 @@ function renderMaths() {
       if (pt.type === 'text') {
         d.innerHTML = `<p><b>${esc(pt.q)}</b></p><details><summary>…or type it</summary><textarea class="answer" id="${key}-${j}" placeholder="Type here if you prefer">${esc(sv.ans || '')}</textarea></details><div class="row"><button class="ghost show">💡 Show a good answer</button></div><div class="feedback" ${sv.fb ? '' : 'hidden'}>${esc(sv.fb || '')}</div><div class="model" hidden></div>`;
         const ta = d.querySelector('textarea'), fb = d.querySelector('.feedback'), md = d.querySelector('.model');
+        ta.addEventListener('change', () => { const all = mres().problems || {}; all[i] = { ...(all[i] || {}), [j]: { ...((all[i] || {})[j] || {}), ans: ta.value.trim() } }; saveM({ problems: all }); });
         d.querySelector('.show').onclick = () => { md.hidden = false; md.textContent = pt.model || ''; say(pt.model || '', 0.9); };
       } else if (pt.type === 'exact') {
         d.innerHTML = `<div class="row"><span style="flex:1 1 200px"><b>${esc(pt.q)}</b>${pt.hint ? `<br><span class="muted" style="font-size:.9rem">${esc(pt.hint)}</span>` : ''}</span><input class="num ${sv.ok ? 'ok' : sv.ok === false ? 'bad' : ''}" style="width:180px" value="${esc(sv.ans ?? '')}" id="${key}-${j}"><button class="big chk">Check</button></div><p class="verdict v"></p>`;
@@ -777,10 +780,16 @@ function summary() {
   mathsSummary().forEach(l => lines.push('Maths — ' + l));
   return { r, lines };
 }
+const TRANSLIT = { а:'a',б:'b',в:'v',г:'g',д:'d',е:'e',ё:'yo',ж:'zh',з:'z',и:'i',й:'y',к:'k',л:'l',м:'m',н:'n',о:'o',п:'p',р:'r',с:'s',т:'t',у:'u',ф:'f',х:'kh',ц:'ts',ч:'ch',ш:'sh',щ:'shch',ъ:'',ы:'y',ь:'',э:'e',ю:'yu',я:'ya' };
+function pdfSafe(t) {
+  return String(t ?? '').replace(/[Ѐ-ӿ]/g, ch => { const lo = ch.toLowerCase(), tr = TRANSLIT[lo] ?? ch; return ch === lo ? tr : tr.charAt(0).toUpperCase() + tr.slice(1); })
+    .replace(/−/g, '-').replace(/×/g, 'x').replace(/÷/g, '/').replace(/☐/g, '[ ]').replace(/[–—]/g, '-').replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/…/g, '...').replace(/✓/g, 'OK').replace(/✗/g, 'X').replace(/·/g, '-')
+    .replace(/[^\x00-\x7F -ÿ]/g, '');
+}
 function newDoc() {
   const { jsPDF } = window.jspdf; const doc = new jsPDF({ unit: 'mm', format: 'a4' }); let y = 18; const L = 15, Wd = 180;
-  const h = (txt, size = 11, bold = false) => { doc.setFont('helvetica', bold ? 'bold' : 'normal'); doc.setFontSize(size); const ls = doc.splitTextToSize(txt, Wd); if (y + ls.length * size * 0.45 > 285) { doc.addPage(); y = 18; } doc.text(ls, L, y); y += ls.length * size * 0.45 + 2; };
-  const img = (ink, frac = 1) => { if (!ink?.hasInk()) return false; const im = ink.toImage(); const hmm = Wd * frac * im.height / im.width; if (y + hmm > 285) { doc.addPage(); y = 18; } doc.addImage(im.toDataURL('image/jpeg', 0.85), 'JPEG', L, y, Wd * frac, hmm); y += hmm + 2; return true; };
+  const h = (txt, size = 11, bold = false) => { txt = pdfSafe(txt); doc.setFont('helvetica', bold ? 'bold' : 'normal'); doc.setFontSize(size); const ls = doc.splitTextToSize(txt, Wd); if (y + ls.length * size * 0.45 > 285) { doc.addPage(); y = 18; } doc.text(ls, L, y); y += ls.length * size * 0.45 + 2; };
+  const img = (ink, frac = 1) => { if (!ink?.hasInk()) return false; const im = ink.toImage(); if (!(im.width > 0 && im.height > 0)) return false; const hmm = Wd * frac * im.height / im.width; if (y + hmm > 285) { doc.addPage(); y = 18; } doc.addImage(im.toDataURL('image/jpeg', 0.85), 'JPEG', L, y, Wd * frac, hmm); y += hmm + 2; return true; };
   const gap = n => { y += n; };
   return { doc, h, img, gap };
 }
@@ -818,11 +827,25 @@ function buildMathsPdf(name) {
   return { blob: doc.output('blob'), fname: `Maths ${W.title}${name ? ' - ' + name : ''}.pdf`, lines, subject: 'Maths' };
 }
 let lastPdfs = [];
+function recordedSummary() {
+  const r = results(), m = r.maths || {}; const inkN = Object.keys(inks).filter(k => k.startsWith(W.id) && inks[k].hasInk()).length;
+  const parts = [];
+  parts.push(`Spelling test: ${r.spellBest != null ? r.spellBest + '/' + W.words.length : '—'}`);
+  parts.push(`Reading quiz: ${r.quizBest ? r.quizBest.score + '/' + r.quizBest.n : '—'}`);
+  parts.push(`Reading aloud: ${Object.keys(r.reading || {}).length} passages`);
+  parts.push(`Written answers: ${Object.keys(r.answers || {}).length}`);
+  if (W.maths) { parts.push(`Times tables: ${m.tt?.score != null ? m.tt.score + '/' + m.tt.n : '—'}`); parts.push(`Sums checked: ${Object.keys(m.sums || {}).length}`); parts.push(`Problem answers: ${Object.values(m.problems || {}).reduce((n, o) => n + Object.keys(o).length, 0)}`); }
+  parts.push(`Handwriting boxes used: ${inkN}`);
+  const empty = r.spellBest == null && !r.quizBest && !Object.keys(r.reading || {}).length && !Object.keys(r.answers || {}).length && m.tt?.score == null && !Object.keys(m.sums || {}).length && !inkN;
+  return { text: 'Recorded in this app on this iPad: ' + parts.join(' · '), empty };
+}
+function refreshRecorded() { const el = $('recorded'); if (!el) return; const { text, empty } = recordedSummary(); el.innerHTML = esc(text) + (empty ? '\n\n⚠️ Nothing is recorded here yet. Results live in the copy of the app where the work was done: if you solved in Safari, make the PDF in Safari; if from the Home Screen icon, make it there. Also press Check after each answer so it is saved.' : ''); el.style.borderLeft = empty ? '4px solid var(--bad)' : ''; }
+document.querySelector('.tab[data-tab="report"]').addEventListener('click', refreshRecorded);
 $('makePdf').onclick = () => {
   const st = $('pdfStatus'); st.textContent = 'Building the PDFs…';
   try {
     const name = $('childName').value || ''; lastPdfs = [buildSpagPdf(name)]; if (W.maths) lastPdfs.push(buildMathsPdf(name));
-    $('pdfActions').hidden = false; st.textContent = lastPdfs.length === 2 ? 'Two PDFs are ready: SPAG and Maths.' : 'PDF is ready.';
+    $('pdfActions').hidden = false; st.textContent = lastPdfs.length === 2 ? 'Two PDFs are ready: SPAG and Maths.' : 'PDF is ready.'; refreshRecorded();
   } catch (e) { st.textContent = 'Could not make the PDF: ' + (e.message || e.code || ''); }
 };
 $('pdfSave').onclick = () => {
