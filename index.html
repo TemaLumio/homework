@@ -125,8 +125,10 @@
     <div class="row">
       <select id="voiceSel" aria-label="Choose a voice" hidden style="font:700 .9rem var(--body);padding:8px 10px;border-radius:12px;border:2px solid var(--line);background:var(--paper);color:var(--fg);max-width:200px"></select>
       <button class="ghost" id="voiceBtn">🔊 Test</button>
+      <button class="ghost" id="lockBtn" title="Parent: unlock model answers">🔒</button>
     </div>
   </header>
+  <div class="card" id="lockBox" hidden style="gap:8px"><div class="row"><span class="grow">Parent code to show model answers:</span><input id="lockCode" type="password" inputmode="numeric" placeholder="code" style="width:120px;font:700 1.1rem var(--display);text-align:center;padding:8px;border-radius:12px;border:2px solid var(--line);background:var(--bg);color:var(--fg)"><button class="big" id="lockGo">Unlock</button><button class="ghost" id="lockHide">Hide answers</button></div><p class="status" id="lockMsg"></p></div>
   <p class="tip" id="voiceTip">Best voice: on the iPad go to Settings → Accessibility → Spoken Content → Voices → English (UK) and download <b>Daniel (Enhanced)</b> or <b>Serena (Premium)</b>. Then pick it in the menu above (★). <button class="ghost" style="padding:4px 10px;font-size:.85rem" onclick="this.parentElement.hidden=true;try{localStorage.setItem('spag-voicetip','1')}catch(e){}">Got it</button></p>
   <div class="chips" id="weekChips" role="tablist"></div>
 
@@ -204,7 +206,7 @@
     <div id="think" style="display:grid;gap:12px" hidden>
       <div class="card">
         <h2>Answer in your own words</h2>
-        <p class="tip">Like the long questions on your sheet. Say your answer out loud first, then <b>write it with your Apple Pencil</b> in the box, or type it. Then press 💡 to compare with a good answer.</p>
+        <p class="tip">Like the long questions on your sheet. Say your answer out loud first, then <b>write it with your Apple Pencil</b> in the box, or type it. </p>
       </div>
       <div id="thinkList" style="display:grid;gap:12px"></div>
     </div>
@@ -230,7 +232,7 @@
       <div id="sumList" style="display:grid;gap:12px"></div>
     </div>
     <div id="mprob" style="display:grid;gap:12px" hidden>
-      <div class="card"><h2>Problem solving and reasoning</h2><p class="tip">Read the problem (or press 🔊). Do your working with the pencil, then type each answer. For “explain” questions, compare with the good answer afterwards.</p></div>
+      <div class="card"><h2>Problem solving and reasoning</h2><p class="tip">Read the problem (or press 🔊). Do your working with the pencil, then type each answer. </p></div>
       <div id="probList" style="display:grid;gap:12px"></div>
     </div>
   </section>
@@ -369,12 +371,20 @@ document.getElementById('voiceSel').onchange = e => {
 };
 
 // ===================== STATE =====================
+let answersUnlocked = false; try { answersUnlocked = sessionStorage.getItem('spag-unlocked') === '1'; } catch (e) {}
 let W = DEFAULT_WEEK;          // current week
 let weeks = [DEFAULT_WEEK];    // all weeks
 const $ = id => document.getElementById(id);
 const shuffle = a => a.map(x => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map(x => x[1]);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function sayWord(w, slow = false) { say(slow ? w.split('').join(' ') : `${w}. ${(W.sentences || {})[w] || ''}`, slow ? 0.6 : 0.9); }
+
+// ===================== PARENT LOCK =====================
+const PARENT_CODE = '2026';
+$('lockBtn').onclick = () => { const b = $('lockBox'); b.hidden = !b.hidden; $('lockHide').hidden = !answersUnlocked; $('lockBtn').textContent = answersUnlocked ? '🔓' : '🔒'; if (!b.hidden) $('lockCode').focus(); };
+$('lockGo').onclick = () => { if ($('lockCode').value.trim() === PARENT_CODE) { answersUnlocked = true; try { sessionStorage.setItem('spag-unlocked', '1'); } catch (e) {} $('lockMsg').textContent = 'Model answers are now visible (until the app is closed).'; $('lockBtn').textContent = '🔓'; $('lockHide').hidden = false; $('lockCode').value = ''; renderWeek(); } else { $('lockMsg').textContent = 'Wrong code.'; } };
+$('lockCode').addEventListener('keydown', e => { if (e.key === 'Enter') $('lockGo').click(); });
+$('lockHide').onclick = () => { answersUnlocked = false; try { sessionStorage.removeItem('spag-unlocked'); } catch (e) {} $('lockMsg').textContent = 'Answers hidden.'; $('lockBtn').textContent = '🔒'; $('lockHide').hidden = true; renderWeek(); };
 
 // ===================== TABS =====================
 document.querySelectorAll('.tab').forEach(b => b.onclick = () => {
@@ -662,7 +672,7 @@ function renderThink() {
       <p class="tip">Sentence starters: ${esc(t.starters || '')}</p>
       <div class="ink"></div>
       <details><summary>…or type your answer</summary><textarea class="answer" id="open-${key}" placeholder="Type your answer here…">${esc((res.answers || {})[i] || '')}</textarea></details>
-      <div class="row"><button class="ghost show">💡 Show a good answer</button></div>
+      <div class="row"><button class="ghost show" ${answersUnlocked ? '' : 'hidden'}>💡 Show a good answer</button></div>
       <div class="feedback" hidden></div><div class="model" hidden></div>`;
     const ta = c.querySelector('textarea'), fb = c.querySelector('.feedback'), md = c.querySelector('.model');
     const ink = makeInk(c.querySelector('.ink'), key); inks[key] = ink;
@@ -752,7 +762,7 @@ function renderMaths() {
     pr.parts.forEach((pt, j) => {
       const sv = saved[j] || {}; const d = document.createElement('div');
       if (pt.type === 'text') {
-        d.innerHTML = `<p><b>${esc(pt.q)}</b></p><details><summary>…or type it</summary><textarea class="answer" id="${key}-${j}" placeholder="Type here if you prefer">${esc(sv.ans || '')}</textarea></details><div class="row"><button class="ghost show">💡 Show a good answer</button></div><div class="feedback" ${sv.fb ? '' : 'hidden'}>${esc(sv.fb || '')}</div><div class="model" hidden></div>`;
+        d.innerHTML = `<p><b>${esc(pt.q)}</b></p><details><summary>…or type it</summary><textarea class="answer" id="${key}-${j}" placeholder="Type here if you prefer">${esc(sv.ans || '')}</textarea></details><div class="row"><button class="ghost show" ${answersUnlocked ? '' : 'hidden'}>💡 Show a good answer</button></div><div class="feedback" ${sv.fb ? '' : 'hidden'}>${esc(sv.fb || '')}</div><div class="model" hidden></div>`;
         const ta = d.querySelector('textarea'), fb = d.querySelector('.feedback'), md = d.querySelector('.model');
         ta.addEventListener('change', () => { const all = mres().problems || {}; all[i] = { ...(all[i] || {}), [j]: { ...((all[i] || {})[j] || {}), ans: ta.value.trim() } }; saveM({ problems: all }); });
         d.querySelector('.show').onclick = () => { md.hidden = false; md.textContent = pt.model || ''; say(pt.model || '', 0.9); };
@@ -847,7 +857,8 @@ function buildMathsPdf(name) {
     M.sums.forEach(([a, op, b], i) => { const r = (m.sums || {})[i]; h(`${i + 1}. ${a} ${op} ${b} = ${r?.ans || '…'} ${r ? (r.ok ? '✓' : '✗') : ''}${r?.inv ? ' (inverse checked)' : ''}`, 10); img(inks[W.id + '-sum' + i], 0.6); }); }
   if ((M.problems || []).length) { gap(2); h('Problem solving and reasoning', 13, true);
     M.problems.forEach((pr, i) => { h(`${i + 1}. ${pr.title}`, 11, true); h(pr.text, 9); img(inks[W.id + '-prob' + i]);
-      pr.parts.forEach((pt, j) => { const sv = ((m.problems || {})[i] || {})[j] || {}; h(`${pt.q}: ${sv.ans || '(no answer)'}${pt.type !== 'text' ? (sv.ok ? ' ✓' : sv.ans ? ' ✗' : '') : ''}`, 10); if (sv.fb) h('Feedback: ' + sv.fb, 9); }); gap(2); }); }
+      const hasInkP = !!inks[W.id + '-prob' + i]?.hasInk();
+      pr.parts.forEach((pt, j) => { const sv = ((m.problems || {})[i] || {})[j] || {}; const shown = sv.ans ? sv.ans : (pt.type === 'text' && hasInkP ? '(see working above)' : '(no answer)'); h(`${pt.q}: ${shown}${pt.type !== 'text' ? (sv.ok ? ' ✓' : sv.ans ? ' ✗' : '') : ''}`, 10); if (sv.fb) h('Feedback: ' + sv.fb, 9); }); gap(2); }); }
   gap(4); h('Message for the teacher (copy and paste):', 10, true); h(`Dear Ms Christodoulou, please find attached ${name || 'my child'}'s completed maths homework for ${W.title}. Kind regards`, 9);
   return { blob: doc.output('blob'), fname: `Maths ${W.title} ${dateStamp()}${name ? ' ' + pdfSafe(name) : ''}.pdf`, lines, subject: 'Maths' };
 }
