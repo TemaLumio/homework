@@ -43,7 +43,7 @@
   body {
     background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 1.0625rem; line-height: 1.45;
     padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
-    padding-block: 12px 40px;
+    padding-block: 12px 45vh;
   }
   .wrap { max-width: 640px; margin: 0 auto; display: grid; gap: 14px; }
   /* Big screens (iPad 11–13" landscape & portrait): scale everything up and widen */
@@ -588,8 +588,14 @@ function drawPrefill(c, opts, color) { // prints the sum's digits into the grid 
   put(op === '-' ? '−' : op, col0 - 1, 2); [...B].forEach((ch, i) => put(ch, col0 + w - B.length + i, 2));
   c.strokeStyle = color; c.lineWidth = 2.5; c.beginPath(); c.moveTo((col0 - 1) * cell + 4, 3 * cell); c.lineTo((col0 + w) * cell - 4, 3 * cell); c.stroke(); c.restore();
 }
+function drawStamp(c, s, r, color) { // a number stamped into the grid: one character per cell, starting at the tapped cell
+  const cell = s.cell || 40; c.save(); c.globalCompositeOperation = 'source-over'; c.fillStyle = color; c.font = `700 ${Math.round(cell * 0.68)}px "Baloo 2", "Arial Rounded MT Bold", system-ui, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle';
+  const col = Math.floor(s.x * r.width / cell), row = Math.floor(s.y * r.height / cell);
+  [...s.s].forEach((ch, i) => c.fillText(ch, (col + i + 0.5) * cell, (row + 0.5) * cell)); c.restore();
+}
 function makeInk(host, key, opts = {}) {
-  host.innerHTML = `<div class="row between"><span class="muted" style="font-size:.9rem">✍️ ${opts.prefill ? 'The sum is printed in the squares — write your answer under the line' : opts.grid ? 'Work it out here — one digit per square' : 'Write here with your pencil'}</span><div class="row"><button class="ghost pen" aria-pressed="true" style="padding:6px 10px">✏️</button><button class="ghost erase" aria-pressed="false" style="padding:6px 10px">🧽</button><button class="ghost undo" style="padding:6px 10px">↶</button><button class="ghost clear" style="padding:6px 10px">Clear</button></div></div>
+  let pendingStamp = null;
+  host.innerHTML = (opts.stamps && opts.stamps.length ? `<div class="row" style="gap:6px;margin-bottom:6px"><span class="muted" style="font-size:.9rem">Tap a number, then tap a square:</span>${opts.stamps.map(t => `<button class="ghost stamp" style="padding:6px 10px;font-family:var(--display);font-size:1.05rem" data-s="${esc(t)}">${esc(t)}</button>`).join('')}</div>` : '') + `<div class="row between"><span class="muted" style="font-size:.9rem">✍️ ${opts.prefill ? 'The sum is printed in the squares — write your answer under the line' : opts.grid ? 'Work it out here — one digit per square' : 'Write here with your pencil'}</span><div class="row"><button class="ghost pen" aria-pressed="true" style="padding:6px 10px">✏️</button><button class="ghost erase" aria-pressed="false" style="padding:6px 10px">🧽</button><button class="ghost undo" style="padding:6px 10px">↶</button><button class="ghost clear" style="padding:6px 10px">Clear</button></div></div>
     <canvas class="ink-canvas" style="width:100%;height:200px;border:2px dashed var(--line);border-radius:12px;background:var(--paper);touch-action:none;display:block"></canvas>`;
   const cv = host.querySelector('canvas'), ctx = cv.getContext('2d');
   let strokes = []; try { strokes = JSON.parse(localStorage.getItem('spag-ink-' + key) || '[]'); } catch (e) {}
@@ -607,6 +613,7 @@ function makeInk(host, key, opts = {}) {
     else for (let y = 40; y < r.height; y += 40) { ctx.beginPath(); ctx.moveTo(8, y); ctx.lineTo(r.width - 8, y); ctx.stroke(); }
     ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     for (const s of strokes) {
+      if (s.t === 's') { drawStamp(ctx, s, r, getComputedStyle(document.documentElement).getPropertyValue('--fg')); continue; }
       ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
       ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--fg'); ctx.lineWidth = s.e ? 24 : 2.6;
       ctx.beginPath(); s.p.forEach(([x, y], i) => { const X = x * r.width, Y = y * r.height; i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); }); ctx.stroke();
@@ -618,8 +625,10 @@ function makeInk(host, key, opts = {}) {
   const pos = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]; };
   cv.addEventListener('pointerdown', e => {
     if (e.pointerType === 'pen') lastPen = Date.now(); else if (e.pointerType === 'touch' && Date.now() - lastPen < 3000) return; // palm rejection while the pencil is in use
+    if (pendingStamp) { const [x, y] = pos(e); strokes.push({ t: 's', s: pendingStamp, x, y, cell: opts.cell || 40 }); pendingStamp = null; host.querySelectorAll('.stamp').forEach(b => b.style.background = ''); save(); draw(); e.preventDefault(); return; }
     cv.setPointerCapture(e.pointerId); cur = { p: [pos(e)], e: erasing }; strokes.push(cur); e.preventDefault();
   });
+  host.querySelectorAll('.stamp').forEach(b => b.onclick = () => { const on = pendingStamp === b.dataset.s; pendingStamp = on ? null : b.dataset.s; host.querySelectorAll('.stamp').forEach(x => x.style.background = x === b && !on ? 'var(--sun-soft)' : ''); });
   cv.addEventListener('pointermove', e => { if (!cur) return; if (e.getCoalescedEvents) e.getCoalescedEvents().forEach(ev => cur.p.push(pos(ev))); else cur.p.push(pos(e)); draw(); e.preventDefault(); });
   const up = () => { if (cur) { cur = null; save(); } };
   cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up); cv.addEventListener('pointerleave', up);
@@ -627,12 +636,12 @@ function makeInk(host, key, opts = {}) {
   host.querySelector('.clear').onclick = () => { strokes = []; save(); draw(); };
   new ResizeObserver(draw).observe(cv); draw();
   return {
-    hasInk: () => strokes.some(s => !s.e && s.p.length > 1),
+    hasInk: () => strokes.some(s => s.t === 's' || (!s.e && s.p.length > 1)),
     toImage: () => { // white background, for the PDF; independent of whether the canvas is currently visible
       const rr = cv.getBoundingClientRect(); const r = (rr.width > 0 && rr.height > 0) ? rr : lastRect; const out = document.createElement('canvas'), d = 2; out.width = Math.round(r.width * d); out.height = Math.round(r.height * d);
       const c = out.getContext('2d'); c.fillStyle = '#fff'; c.fillRect(0, 0, out.width, out.height); c.scale(d, d); c.lineCap = 'round'; c.lineJoin = 'round';
       if (opts.grid) { const cell = opts.cell || 36; c.strokeStyle = '#d8d8d8'; c.lineWidth = 0.6; for (let x = cell; x < r.width; x += cell) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, r.height); c.stroke(); } for (let y = cell; y < r.height; y += cell) { c.beginPath(); c.moveTo(0, y); c.lineTo(r.width, y); c.stroke(); } }
-      for (const s of strokes) { c.globalCompositeOperation = s.e ? 'destination-out' : 'source-over'; c.strokeStyle = '#1b2a4a'; c.lineWidth = s.e ? 24 : 2.6; c.beginPath(); s.p.forEach(([x, y], i) => { i ? c.lineTo(x * r.width, y * r.height) : c.moveTo(x * r.width, y * r.height); }); c.stroke(); }
+      for (const s of strokes) { if (s.t === 's') { drawStamp(c, s, r, '#1b2a4a'); continue; } c.globalCompositeOperation = s.e ? 'destination-out' : 'source-over'; c.strokeStyle = '#1b2a4a'; c.lineWidth = s.e ? 24 : 2.6; c.beginPath(); s.p.forEach(([x, y], i) => { i ? c.lineTo(x * r.width, y * r.height) : c.moveTo(x * r.width, y * r.height); }); c.stroke(); }
       c.globalCompositeOperation = 'destination-over'; c.fillStyle = '#fff'; c.fillRect(0, 0, r.width, r.height);
       c.globalCompositeOperation = 'source-over'; drawPrefill(c, opts, '#777');
       return out;
@@ -736,7 +745,8 @@ function renderMaths() {
     const c = document.createElement('div'); c.className = 'card';
     c.innerHTML = `<div class="row between" style="align-items:flex-start"><div class="row"><span class="pic" style="font-size:1.8rem">${esc(pr.pic || '🧮')}</span><h3>${i + 1}. ${esc(pr.title)}</h3></div><button class="ghost hear">🔊</button></div>
       <p style="white-space:pre-line">${esc(pr.text)}</p><div class="ink"></div><div class="parts" style="display:grid;gap:10px"></div>`;
-    const ink = makeInk(c.querySelector('.ink'), key, { grid: true, cell: 40 }); inks[key] = ink;
+    const nums = [...new Set((pr.text + ' ' + pr.parts.map(x => x.q).join(' ')).match(/\d[\d,]*\d|\d/g) || [])].map(n => n.replace(/,/g, ''));
+    const ink = makeInk(c.querySelector('.ink'), key, { grid: true, cell: 40, stamps: [...nums, '+', '−', '×', '÷', '='] }); inks[key] = ink;
     c.querySelector('.hear').onclick = () => say(pr.title + '. ' + pr.text + ' ' + pr.parts.map(p => p.q).join('. '), 0.88);
     const parts = c.querySelector('.parts');
     pr.parts.forEach((pt, j) => {
@@ -871,6 +881,10 @@ document.querySelectorAll('[data-rep]').forEach(card => {
     else st.textContent = 'Sharing is not available in this browser. Use “Save” and share from Files.';
   };
 });
+// Keep the field being typed in above the on-screen keyboard
+document.addEventListener('focusin', e => { const t = e.target; if (t.matches('input, textarea')) setTimeout(() => t.scrollIntoView({ block: 'center', behavior: 'smooth' }), 300); });
+if (window.visualViewport) visualViewport.addEventListener('resize', () => { const t = document.activeElement; if (t && t.matches('input, textarea')) t.scrollIntoView({ block: 'center' }); });
+
 // ===================== SCROLL HELPERS =====================
 (function () {
   const bar = $('scrollbar'), up = $('scrollUp'), down = $('scrollDown');
