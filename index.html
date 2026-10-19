@@ -580,8 +580,16 @@ function results() { try { return JSON.parse(localStorage.getItem('spag-res-' + 
 function saveResults(patch) { try { localStorage.setItem('spag-res-' + W.id, JSON.stringify({ ...results(), ...patch })); } catch (e) {} }
 
 // ===================== INK CANVAS (Apple Pencil / finger) =====================
+function drawPrefill(c, opts, color) { // prints the sum's digits into the grid so the child writes straight underneath
+  if (!opts.prefill) return; const cell = opts.cell || 36, { a, op, b } = opts.prefill; const A = String(a), B = String(b), w = Math.max(A.length, B.length), col0 = 2;
+  c.save(); c.fillStyle = color; c.font = `700 ${Math.round(cell * 0.68)}px "Baloo 2", "Arial Rounded MT Bold", system-ui, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle';
+  const put = (ch, col, row) => c.fillText(ch, (col + 0.5) * cell, (row + 0.5) * cell);
+  [...A].forEach((ch, i) => put(ch, col0 + w - A.length + i, 1));
+  put(op === '-' ? '−' : op, col0 - 1, 2); [...B].forEach((ch, i) => put(ch, col0 + w - B.length + i, 2));
+  c.strokeStyle = color; c.lineWidth = 2.5; c.beginPath(); c.moveTo((col0 - 1) * cell + 4, 3 * cell); c.lineTo((col0 + w) * cell - 4, 3 * cell); c.stroke(); c.restore();
+}
 function makeInk(host, key, opts = {}) {
-  host.innerHTML = `<div class="row between"><span class="muted" style="font-size:.9rem">✍️ ${opts.grid ? 'Work it out here — one digit per square' : 'Write here with your pencil'}</span><div class="row"><button class="ghost pen" aria-pressed="true" style="padding:6px 10px">✏️</button><button class="ghost erase" aria-pressed="false" style="padding:6px 10px">🧽</button><button class="ghost undo" style="padding:6px 10px">↶</button><button class="ghost clear" style="padding:6px 10px">Clear</button></div></div>
+  host.innerHTML = `<div class="row between"><span class="muted" style="font-size:.9rem">✍️ ${opts.prefill ? 'The sum is printed in the squares — write your answer under the line' : opts.grid ? 'Work it out here — one digit per square' : 'Write here with your pencil'}</span><div class="row"><button class="ghost pen" aria-pressed="true" style="padding:6px 10px">✏️</button><button class="ghost erase" aria-pressed="false" style="padding:6px 10px">🧽</button><button class="ghost undo" style="padding:6px 10px">↶</button><button class="ghost clear" style="padding:6px 10px">Clear</button></div></div>
     <canvas class="ink-canvas" style="width:100%;height:200px;border:2px dashed var(--line);border-radius:12px;background:var(--paper);touch-action:none;display:block"></canvas>`;
   const cv = host.querySelector('canvas'), ctx = cv.getContext('2d');
   let strokes = []; try { strokes = JSON.parse(localStorage.getItem('spag-ink-' + key) || '[]'); } catch (e) {}
@@ -604,6 +612,7 @@ function makeInk(host, key, opts = {}) {
       ctx.beginPath(); s.p.forEach(([x, y], i) => { const X = x * r.width, Y = y * r.height; i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); }); ctx.stroke();
     }
     ctx.globalCompositeOperation = 'source-over';
+    drawPrefill(ctx, opts, getComputedStyle(document.documentElement).getPropertyValue('--muted'));
   }
   const save = () => { try { localStorage.setItem('spag-ink-' + key, JSON.stringify(strokes)); } catch (e) {} };
   const pos = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]; };
@@ -625,6 +634,7 @@ function makeInk(host, key, opts = {}) {
       if (opts.grid) { const cell = opts.cell || 36; c.strokeStyle = '#d8d8d8'; c.lineWidth = 0.6; for (let x = cell; x < r.width; x += cell) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, r.height); c.stroke(); } for (let y = cell; y < r.height; y += cell) { c.beginPath(); c.moveTo(0, y); c.lineTo(r.width, y); c.stroke(); } }
       for (const s of strokes) { c.globalCompositeOperation = s.e ? 'destination-out' : 'source-over'; c.strokeStyle = '#1b2a4a'; c.lineWidth = s.e ? 24 : 2.6; c.beginPath(); s.p.forEach(([x, y], i) => { i ? c.lineTo(x * r.width, y * r.height) : c.moveTo(x * r.width, y * r.height); }); c.stroke(); }
       c.globalCompositeOperation = 'destination-over'; c.fillStyle = '#fff'; c.fillRect(0, 0, r.width, r.height);
+      c.globalCompositeOperation = 'source-over'; drawPrefill(c, opts, '#777');
       return out;
     }
   };
@@ -704,7 +714,7 @@ function renderMaths() {
       <div class="row"><span>Answer:</span><input class="num ${r.ok ? 'ok' : r.ok === false ? 'bad' : ''}" inputmode="numeric" value="${r.ans ?? ''}" id="${key}-a"><button class="big chk">Check</button></div>
       <div class="row inv" ${r.ok ? '' : 'hidden'}><span>Check with the inverse: <b class="invq"></b></span><input class="num" inputmode="numeric" id="${key}-i"><button class="ghost chki">Check</button></div>
       <p class="verdict v"></p>`;
-    inks[key] = makeInk(c.querySelector('.ink'), key, { grid: true, cell: 40 }); c.querySelector('.ink-canvas').style.height = '260px';
+    inks[key] = makeInk(c.querySelector('.ink'), key, { grid: true, cell: 40, prefill: (op === '+' || op === '-') ? { a, op, b } : null }); c.querySelector('.ink-canvas').style.height = '300px';
     c.querySelector('.hear').onclick = () => say(`${a} ${{ '+': 'plus', '-': 'minus', '×': 'times', '÷': 'divided by' }[op]} ${b}`, 0.85);
     const inp = c.querySelector(`#${key}-a`), v = c.querySelector('.v'), inv = c.querySelector('.inv');
     const invQ = { '+': `${ans} − ${b}`, '-': `${ans} + ${b}`, '×': `${ans} ÷ ${b}`, '÷': `${ans} × ${b}` }[op], invA = a;
