@@ -192,7 +192,7 @@
     <div id="think" style="display:grid;gap:12px" hidden>
       <div class="card">
         <h2>Answer in your own words</h2>
-        <p class="tip">Like the long questions on your sheet. Say your answer out loud first, then <b>write it with your Apple Pencil</b> in the box, or type it. <span id="thinkHint">Then press 💡 to compare with a good answer.</span></p>
+        <p class="tip">Like the long questions on your sheet. Say your answer out loud first, then <b>write it with your Apple Pencil</b> in the box, or type it. Then press 💡 to compare with a good answer.</p>
       </div>
       <div id="thinkList" style="display:grid;gap:12px"></div>
       <div class="card" id="reportCard">
@@ -203,9 +203,7 @@
         </div>
         <div class="row">
           <button class="big grow" id="makePdf">Make the PDFs</button>
-          <button class="ghost" id="teacherNote" hidden>✨ Add Claude's note</button>
         </div>
-        <div class="feedback" id="noteBox" hidden></div>
         <div class="row" id="pdfActions" hidden><button class="big grow" id="pdfSend">📤 Send to Dad</button><button class="ghost" id="pdfSave">💾 Save</button></div>
         <p class="status" id="pdfStatus"></p>
       </div>
@@ -348,7 +346,6 @@ document.getElementById('voiceSel').onchange = e => {
 // ===================== STATE =====================
 let W = DEFAULT_WEEK;          // current week
 let weeks = [DEFAULT_WEEK];    // all weeks
-let db = null, sample = null, user = null, canWrite = false, sampleImages = null;
 const $ = id => document.getElementById(id);
 const shuffle = a => a.map(x => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map(x => x[1]);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -412,7 +409,7 @@ function renderWeek() {
       pt.innerHTML = r.html;
       const pct = Math.round(r.hit / r.total * 100);
       rv.textContent = pct >= 95 ? `🏆 ${pct}% — brilliant reading!` : pct >= 80 ? `⭐ ${pct}% — well done!` : `${pct}% — good try, let's practise the tricky words.`;
-      rv.className = 'verdict ' + (pct >= 80 ? 'ok' : 'bad');
+      rv.className = 'verdict rv ' + (pct >= 80 ? 'ok' : 'bad');
       if (r.missed.length) { rf.hidden = false; rf.innerHTML = 'Words to practise (tap to hear): ' + r.missed.map(w => `<button class="ghost" style="padding:4px 10px;margin:2px">${esc(w)}</button>`).join(''); rf.querySelectorAll('button').forEach(b => b.onclick = () => say(b.textContent, 0.8)); }
       else { rf.hidden = true; }
       say(pct >= 80 ? 'Well done!' : 'Good try. Let us practise the tricky words.', 1);
@@ -609,7 +606,6 @@ const inks = {};
 // ===================== OPEN QUESTIONS =====================
 function renderThink() {
   const list = $('thinkList'); list.innerHTML = '';
-  $('thinkHint').hidden = !sample; $('teacherNote').hidden = !sample;
   try { $('childName').value = localStorage.getItem('spag-name') || ''; } catch (e) {}
   const res = results();
   (W.open || []).forEach((t, i) => {
@@ -619,41 +615,13 @@ function renderThink() {
       <p class="tip">Sentence starters: ${esc(t.starters || '')}</p>
       <div class="ink"></div>
       <details><summary>…or type your answer</summary><textarea class="answer" id="open-${key}" placeholder="Type your answer here…">${esc((res.answers || {})[i] || '')}</textarea></details>
-      <div class="row"><button class="big grow check" ${sample ? '' : 'hidden'}>Check my answer</button><button class="ghost show">💡 Show a good answer</button></div>
+      <div class="row"><button class="ghost show">💡 Show a good answer</button></div>
       <div class="feedback" hidden></div><div class="model" hidden></div>`;
     const ta = c.querySelector('textarea'), fb = c.querySelector('.feedback'), md = c.querySelector('.model');
     const ink = makeInk(c.querySelector('.ink'), key); inks[key] = ink;
     ta.addEventListener('change', () => { const a = results().answers || {}; a[i] = ta.value; saveResults({ answers: a }); });
     c.querySelector('.hear').onclick = () => say(t.q, 0.9);
     c.querySelector('.show').onclick = () => { md.hidden = false; md.textContent = t.model || 'Ask a grown-up to help you with this one.'; say(t.model || '', 0.9); };
-    c.querySelector('.check').onclick = async (e) => {
-      const typed = ta.value.trim(), useInk = !typed && ink.hasInk();
-      if (!typed && !useInk) { fb.hidden = false; fb.textContent = 'Write or type your answer first (even one sentence is fine).'; return; }
-      e.target.disabled = true; fb.hidden = false; fb.textContent = 'Thinking…';
-      const ctx = (W.reading?.passages || []).map(p => p.title + ': ' + p.text).join('\n');
-      const prompt = `You are a kind primary-school teacher (UK Year 4-5) marking a child's reading-comprehension answer.${useInk ? ' The answer is HANDWRITTEN in the attached image: read it carefully first.' : ''}
-Reply with ONLY a JSON object: {"transcript": "${useInk ? 'the handwritten answer exactly as you read it' : 'the typed answer as given'}", "feedback": "2-4 short sentences a 9-year-old can read: one thing that is good, then what to add or fix so the answer is complete and uses evidence from the text; if it is already good, say so and suggest one tiny improvement; do not write the full answer for them; be encouraging", "score": 1-3}
-Score: 1 = needs more, 2 = good, 3 = excellent.${useInk ? ' If a word is hard to read, make your best guess and do not mark spelling of unclear words.' : ''}
-
-Text (retold):
-${ctx}
-
-Question: ${t.q}
-A model answer for your reference (do not reveal it word for word): ${t.model || ''}
-${typed ? '\nChild\'s typed answer: ' + typed : ''}`;
-      try {
-        const opts = { modelTier: useInk ? 'default' : 'quick', cache: false };
-        if (useInk) opts.images = await new Promise(r => ink.toImage().toBlob(r, 'image/png'));
-        const r = await sample.json(prompt, opts);
-        const tr = String(r.transcript || ''), fbt = String(r.feedback || '');
-        fb.innerHTML = (useInk && tr ? `<span class="muted">I read: “${esc(tr)}”</span>\n\n` : '') + esc(fbt);
-        say(fbt, 0.95);
-        const a = results().answers || {}, f = results().feedback || {}; if (useInk && tr) a[i] = tr; f[i] = { feedback: fbt, score: Number(r.score) || 0 }; saveResults({ answers: a, feedback: f });
-      } catch (err) {
-        fb.textContent = err.code === 'not_granted' || err.code === 'sampling_disabled' ? 'Checking is not available here. Press “Show a good answer” and compare.' : err.code === 'rate_limited' ? 'Too many checks right now. Try again in a minute.' : err.code === 'images_unavailable' ? 'Handwriting cannot be sent from here. Type the answer instead.' : 'Something went wrong. Try again.';
-        if (err.code === 'not_granted') { sample = null; renderThink(); }
-      } finally { e.target.disabled = false; }
-    };
     list.appendChild(c);
   });
   if (!(W.open || []).length) list.innerHTML = '<p class="muted">No long questions this week.</p>';
@@ -717,10 +685,10 @@ function renderMaths() {
       const val = num(inp.value); const ok = val != null && Math.abs(val - ans) < 0.001;
       inp.className = 'num ' + (ok ? 'ok' : 'bad');
       v.textContent = ok ? '✓ Correct! Now check it with the inverse operation.' : (val == null ? 'Type your answer first.' : 'Not quite. Check your columns and carrying, then try again.');
-      v.className = 'verdict ' + (ok ? 'ok' : 'bad'); inv.hidden = !ok; say(ok ? 'Correct!' : 'Not quite, try again.', 1);
+      v.className = 'verdict v ' + (ok ? 'ok' : 'bad'); inv.hidden = !ok; say(ok ? 'Correct!' : 'Not quite, try again.', 1);
       const all = mres().sums || {}; all[i] = { ans: inp.value, ok, tries: (all[i]?.tries || 0) + 1 }; saveM({ sums: all });
     };
-    c.querySelector('.chki').onclick = () => { const val = num(c.querySelector(`#${key}-i`).value); const ok = val === invA; v.textContent = ok ? `✓ ${invQ} = ${invA}. The inverse checks out!` : `Hmm, ${invQ} should give you back ${a}. Try again.`; v.className = 'verdict ' + (ok ? 'ok' : 'bad'); say(ok ? 'The inverse checks out!' : 'Try again.', 1); const all = mres().sums || {}; all[i] = { ...(all[i] || {}), inv: ok }; saveM({ sums: all }); };
+    c.querySelector('.chki').onclick = () => { const val = num(c.querySelector(`#${key}-i`).value); const ok = val === invA; v.textContent = ok ? `✓ ${invQ} = ${invA}. The inverse checks out!` : `Hmm, ${invQ} should give you back ${a}. Try again.`; v.className = 'verdict v ' + (ok ? 'ok' : 'bad'); say(ok ? 'The inverse checks out!' : 'Try again.', 1); const all = mres().sums || {}; all[i] = { ...(all[i] || {}), inv: ok }; saveM({ sums: all }); };
     sl.appendChild(c);
   });
   // --- problems
@@ -736,34 +704,16 @@ function renderMaths() {
     pr.parts.forEach((pt, j) => {
       const sv = saved[j] || {}; const d = document.createElement('div');
       if (pt.type === 'text') {
-        d.innerHTML = `<p><b>${esc(pt.q)}</b></p><details><summary>…or type it</summary><textarea class="answer" id="${key}-${j}" placeholder="Type here if you prefer">${esc(sv.ans || '')}</textarea></details><div class="row"><button class="big grow chk" ${sample ? '' : 'hidden'}>Check my working</button><button class="ghost show">💡 Show a good answer</button></div><div class="feedback" ${sv.fb ? '' : 'hidden'}>${esc(sv.fb || '')}</div><div class="model" hidden></div>`;
+        d.innerHTML = `<p><b>${esc(pt.q)}</b></p><details><summary>…or type it</summary><textarea class="answer" id="${key}-${j}" placeholder="Type here if you prefer">${esc(sv.ans || '')}</textarea></details><div class="row"><button class="ghost show">💡 Show a good answer</button></div><div class="feedback" ${sv.fb ? '' : 'hidden'}>${esc(sv.fb || '')}</div><div class="model" hidden></div>`;
         const ta = d.querySelector('textarea'), fb = d.querySelector('.feedback'), md = d.querySelector('.model');
         d.querySelector('.show').onclick = () => { md.hidden = false; md.textContent = pt.model || ''; say(pt.model || '', 0.9); };
-        d.querySelector('.chk').onclick = async e => {
-          const typed = ta.value.trim(), useInk = !typed && ink.hasInk();
-          if (!typed && !useInk) { fb.hidden = false; fb.textContent = 'Write your working in the box first.'; return; }
-          e.target.disabled = true; fb.hidden = false; fb.textContent = 'Thinking…';
-          const prompt = `You are a kind UK primary maths teacher (Year 4-5) marking a child's reasoning answer.${useInk ? ' The working is HANDWRITTEN in the attached image: read the numbers carefully.' : ''}
-Reply with ONLY a JSON object: {"transcript":"the child's answer/working as you read it","feedback":"2-4 short sentences a 9-year-old can read: say what is right, then what is missing or wrong and one tip; do not just give the answer; be encouraging","score":1-3}
-Problem: ${pr.text}
-Question: ${pt.q}
-Model answer (do not reveal word for word): ${pt.model || ''}${typed ? '\nChild typed: ' + typed : ''}`;
-          try {
-            const opts = { modelTier: useInk ? 'default' : 'quick', cache: false };
-            if (useInk) opts.images = await new Promise(r => ink.toImage().toBlob(r, 'image/png'));
-            const r = await sample.json(prompt, opts); const fbt = String(r.feedback || '');
-            fb.innerHTML = (useInk && r.transcript ? `<span class="muted">I read: “${esc(r.transcript)}”</span>\n\n` : '') + esc(fbt); say(fbt, 0.95);
-            const all = mres().problems || {}; all[i] = { ...(all[i] || {}), [j]: { ans: typed || String(r.transcript || ''), fb: fbt, score: Number(r.score) || 0 } }; saveM({ problems: all });
-          } catch (err) { fb.textContent = err.code === 'rate_limited' ? 'Too many checks right now. Try again in a minute.' : 'Checking is not available right now. Press “Show a good answer” and compare.'; }
-          finally { e.target.disabled = false; }
-        };
       } else if (pt.type === 'exact') {
         d.innerHTML = `<div class="row"><span style="flex:1 1 200px"><b>${esc(pt.q)}</b>${pt.hint ? `<br><span class="muted" style="font-size:.9rem">${esc(pt.hint)}</span>` : ''}</span><input class="num ${sv.ok ? 'ok' : sv.ok === false ? 'bad' : ''}" style="width:180px" value="${esc(sv.ans ?? '')}" id="${key}-${j}"><button class="big chk">Check</button></div><p class="verdict v"></p>`;
         const inp = d.querySelector('input'), v = d.querySelector('.v');
         const normE = x => String(x).toLowerCase().replace(/\s+/g, '').replace(/,/g, '');
         d.querySelector('.chk').onclick = () => {
           const accepted = [].concat(pt.answer).map(normE); const ok = accepted.includes(normE(inp.value));
-          inp.className = 'num ' + (ok ? 'ok' : 'bad'); v.textContent = ok ? '✓ Correct!' : 'Not quite. Try again.'; v.className = 'verdict ' + (ok ? 'ok' : 'bad'); say(ok ? 'Correct!' : 'Not quite, try again.', 1);
+          inp.className = 'num ' + (ok ? 'ok' : 'bad'); v.textContent = ok ? '✓ Correct!' : 'Not quite. Try again.'; v.className = 'verdict v ' + (ok ? 'ok' : 'bad'); say(ok ? 'Correct!' : 'Not quite, try again.', 1);
           const all = mres().problems || {}; all[i] = { ...(all[i] || {}), [j]: { ans: inp.value, ok, tries: ((all[i] || {})[j]?.tries || 0) + 1 } }; saveM({ problems: all });
         };
       } else {
@@ -775,7 +725,7 @@ Model answer (do not reveal word for word): ${pt.model || ''}${typed ? '\nChild 
           else ok = val != null && Math.abs(val - pt.answer) < 0.001;
           inp.className = 'num ' + (ok ? 'ok' : 'bad');
           v.textContent = ok ? (pt.type === 'estimate' ? '✓ Good estimate!' : '✓ Correct!') : val == null ? 'Type a number first.' : (pt.type === 'estimate' ? 'Hmm — round each number first, then add or subtract the rounded numbers.' : 'Not quite. Read the question again and check your working.');
-          v.className = 'verdict ' + (ok ? 'ok' : 'bad'); say(ok ? 'Correct!' : 'Not quite, try again.', 1);
+          v.className = 'verdict v ' + (ok ? 'ok' : 'bad'); say(ok ? 'Correct!' : 'Not quite, try again.', 1);
           const all = mres().problems || {}; all[i] = { ...(all[i] || {}), [j]: { ans: inp.value, ok, tries: ((all[i] || {})[j]?.tries || 0) + 1 } }; saveM({ problems: all });
         };
       }
@@ -795,7 +745,7 @@ function mathsSummary() {
 }
 
 // ===================== REPORT PDF =====================
-let downloads = null, assets = null, noteText = '';
+let noteText = '';
 $('childName').addEventListener('change', e => { try { localStorage.setItem('spag-name', e.target.value); } catch (err) {} });
 function summary() {
   const r = results(); const lines = [];
@@ -806,17 +756,6 @@ function summary() {
   mathsSummary().forEach(l => lines.push('Maths — ' + l));
   return { r, lines };
 }
-$('teacherNote').onclick = async () => {
-  if (!sample) return; const box = $('noteBox'); box.hidden = false; box.textContent = 'Thinking…'; $('teacherNote').disabled = true;
-  const { r, lines } = summary();
-  const answers = (W.open || []).map((t, i) => `Q${i + 1}: ${t.q}\nAnswer: ${(r.answers || {})[i] || '(no answer)'}\nFeedback given: ${((r.feedback || {})[i] || {}).feedback || '-'}`).join('\n\n');
-  const prompt = `You are a UK primary teacher writing a short, warm progress note (4-6 sentences, plain prose, no headings, no bullet points) for a parent and class teacher about a child's weekly SPAG homework practice. Name 1-2 strengths and 1-2 specific next steps (e.g. particular spelling words or a comprehension skill such as using evidence). Do not invent results that are not listed.
-Child: ${$('childName').value || 'the child'}. Week: ${W.title}. Spelling pattern: ${W.pattern?.title || ''}. Words: ${W.words.join(', ')}.
-Results:\n${lines.join('\n')}\nTimes-table mistakes: ${(mres().tt?.wrong || []).join(', ') || 'none recorded'}\nSpelling test mistakes: ${(r.spellWrong || []).join(', ') || 'none recorded'}\nTricky words when reading aloud: ${(r.readingMissed || []).join(', ') || 'none recorded'}\n\nComprehension answers:\n${answers}`;
-  try { const res = await sample(prompt, { modelTier: 'quick', cache: false }); noteText = res.text; box.textContent = noteText; }
-  catch (e) { box.textContent = 'Could not write the note right now.'; }
-  finally { $('teacherNote').disabled = false; }
-};
 function newDoc() {
   const { jsPDF } = window.jspdf; const doc = new jsPDF({ unit: 'mm', format: 'a4' }); let y = 18; const L = 15, Wd = 180;
   const h = (txt, size = 11, bold = false) => { doc.setFont('helvetica', bold ? 'bold' : 'normal'); doc.setFontSize(size); const ls = doc.splitTextToSize(txt, Wd); if (y + ls.length * size * 0.45 > 285) { doc.addPage(); y = 18; } doc.text(ls, L, y); y += ls.length * size * 0.45 + 2; };
