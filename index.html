@@ -47,8 +47,8 @@
   }
   .wrap { max-width: 640px; margin: 0 auto; display: grid; gap: 14px; }
   /* Big screens (iPad 11–13" landscape & portrait): scale everything up and widen */
-  @media (min-width: 900px) { html { font-size: 19px; } .wrap { max-width: 980px; gap: 18px; } .card { padding: 22px; } .words { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); } .tt { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); } .ink-canvas { height: 16rem !important; } }
-  @media (min-width: 1200px) { html { font-size: 21px; } .wrap { max-width: 1120px; } .ink-canvas { height: 18rem !important; } }
+  @media (min-width: 900px) { html { font-size: 19px; } .wrap { max-width: 980px; gap: 18px; } .card { padding: 22px; } .words { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); } .tt { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); } .ink-canvas:not([style*='480px']) { height: 16rem !important; } }
+  @media (min-width: 1200px) { html { font-size: 21px; } .wrap { max-width: 1120px; } .ink-canvas:not([style*='480px']) { height: 18rem !important; } }
   /* Scroll helpers: progress bar + up/down buttons */
   #scrollbar { position: fixed; top: 0; left: 0; height: 5px; width: 0; background: var(--accent); z-index: 50; transition: width .1s; }
   #scrollBtns { position: fixed; right: max(12px, env(safe-area-inset-right, 0px)); bottom: max(16px, env(safe-area-inset-bottom, 0px)); display: grid; gap: 8px; z-index: 40; }
@@ -596,7 +596,7 @@ function drawPrefill(c, opts, color) { // prints the sum's digits into the grid 
   const put = (ch, col, row) => c.fillText(ch, (col + 0.5) * cell, (row + 0.5) * cell);
   [...A].forEach((ch, i) => put(ch, col0 + w - A.length + i, 1));
   put(op === '-' ? '−' : op, col0 - 1, 2); [...B].forEach((ch, i) => put(ch, col0 + w - B.length + i, 2));
-  c.strokeStyle = color; c.lineWidth = 2.5; c.beginPath(); c.moveTo((col0 - 1) * cell + 4, 3 * cell); c.lineTo((col0 + w) * cell - 4, 3 * cell); c.stroke(); c.restore();
+  c.strokeStyle = color; c.lineWidth = Math.max(2.5, cell / 16); c.beginPath(); c.moveTo((col0 - 1) * cell + 4, 3 * cell); c.lineTo((col0 + w) * cell - 4, 3 * cell); c.stroke(); c.restore();
 }
 function drawStamp(c, s, r, color) { // a number stamped into the grid: one character per cell, starting at the tapped cell
   const cell = s.cell || 40; c.save(); c.globalCompositeOperation = 'source-over'; c.fillStyle = color; c.font = `700 ${Math.round(cell * 0.68)}px "Baloo 2", "Arial Rounded MT Bold", system-ui, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle';
@@ -635,7 +635,7 @@ function makeInk(host, key, opts = {}) {
   const pos = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]; };
   cv.addEventListener('pointerdown', e => {
     if (e.pointerType === 'pen') lastPen = Date.now(); else if (e.pointerType === 'touch' && Date.now() - lastPen < 3000) return; // palm rejection while the pencil is in use
-    if (pendingStamp) { const [x, y] = pos(e); strokes.push({ t: 's', s: pendingStamp, x, y, cell: opts.cell || 40 }); pendingStamp = null; host.querySelectorAll('.stamp').forEach(b => b.style.background = ''); save(); draw(); e.preventDefault(); return; }
+    if (pendingStamp) { const [x, y] = pos(e); strokes.push({ t: 's', s: pendingStamp, x, y, cell: opts.cell || 80 }); pendingStamp = null; host.querySelectorAll('.stamp').forEach(b => b.style.background = ''); save(); draw(); e.preventDefault(); return; }
     cv.setPointerCapture(e.pointerId); cur = { p: [pos(e)], e: erasing }; strokes.push(cur); e.preventDefault();
   });
   host.querySelectorAll('.stamp').forEach(b => b.onclick = () => { const on = pendingStamp === b.dataset.s; pendingStamp = on ? null : b.dataset.s; host.querySelectorAll('.stamp').forEach(x => x.style.background = x === b && !on ? 'var(--sun-soft)' : ''); });
@@ -671,7 +671,7 @@ function renderThink() {
     c.innerHTML = `<div class="row between" style="align-items:flex-start"><h3 style="flex:1 1 200px">${i + 1}. ${esc(t.q)}</h3><button class="ghost hear">🔊</button></div>
       <p class="tip">Sentence starters: ${esc(t.starters || '')}</p>
       <div class="ink"></div>
-      <details><summary>…or type your answer</summary><textarea class="answer" id="open-${key}" placeholder="Type your answer here…">${esc((res.answers || {})[i] || '')}</textarea></details>
+      <details open><summary>…or type your answer</summary><textarea class="answer" id="open-${key}" placeholder="Type your answer here…">${esc((res.answers || {})[i] || '')}</textarea></details>
       <div class="row"><button class="ghost show" ${answersUnlocked ? '' : 'hidden'}>💡 Show a good answer</button></div>
       <div class="feedback" hidden></div><div class="model" hidden></div>`;
     const ta = c.querySelector('textarea'), fb = c.querySelector('.feedback'), md = c.querySelector('.model');
@@ -733,7 +733,7 @@ function renderMaths() {
       <div class="row"><span>Answer:</span><input class="num ${r.ok ? 'ok' : r.ok === false ? 'bad' : ''}" inputmode="numeric" value="${r.ans ?? ''}" id="${key}-a"><button class="big chk">Check</button></div>
       <div class="row inv" ${r.ok ? '' : 'hidden'}><span>Check with the inverse: <b class="invq"></b></span><input class="num" inputmode="numeric" id="${key}-i"><button class="ghost chki">Check</button></div>
       <p class="verdict v"></p>`;
-    inks[key] = makeInk(c.querySelector('.ink'), key, { grid: true, cell: 40, prefill: (op === '+' || op === '-') ? { a, op, b } : null }); c.querySelector('.ink-canvas').style.height = '300px';
+    inks[key] = makeInk(c.querySelector('.ink'), key, { grid: true, cell: 80, prefill: (op === '+' || op === '-') ? { a, op, b } : null }); c.querySelector('.ink-canvas').style.height = '480px';
     c.querySelector('.hear').onclick = () => say(`${a} ${{ '+': 'plus', '-': 'minus', '×': 'times', '÷': 'divided by' }[op]} ${b}`, 0.85);
     const inp = c.querySelector(`#${key}-a`), v = c.querySelector('.v'), inv = c.querySelector('.inv');
     const invQ = { '+': `${ans} − ${b}`, '-': `${ans} + ${b}`, '×': `${ans} ÷ ${b}`, '÷': `${ans} × ${b}` }[op], invA = a;
@@ -756,13 +756,13 @@ function renderMaths() {
     c.innerHTML = `<div class="row between" style="align-items:flex-start"><div class="row"><span class="pic" style="font-size:1.8rem">${esc(pr.pic || '🧮')}</span><h3>${i + 1}. ${esc(pr.title)}</h3></div><button class="ghost hear">🔊</button></div>
       <p style="white-space:pre-line">${esc(pr.text)}</p><div class="ink"></div><div class="parts" style="display:grid;gap:10px"></div>`;
     const nums = [...new Set((pr.text + ' ' + pr.parts.map(x => x.q).join(' ')).match(/\d[\d,]*\d|\d/g) || [])].map(n => n.replace(/,/g, ''));
-    const ink = makeInk(c.querySelector('.ink'), key, { grid: true, cell: 40, stamps: [...nums, '+', '−', '×', '÷', '='] }); inks[key] = ink;
+    const ink = makeInk(c.querySelector('.ink'), key, { grid: true, cell: 80, stamps: [...nums, '+', '−', '×', '÷', '='] }); inks[key] = ink; c.querySelector('.ink-canvas').style.height = '480px';
     c.querySelector('.hear').onclick = () => say(pr.title + '. ' + pr.text + ' ' + pr.parts.map(p => p.q).join('. '), 0.88);
     const parts = c.querySelector('.parts');
     pr.parts.forEach((pt, j) => {
       const sv = saved[j] || {}; const d = document.createElement('div');
       if (pt.type === 'text') {
-        d.innerHTML = `<p><b>${esc(pt.q)}</b></p><details><summary>…or type it</summary><textarea class="answer" id="${key}-${j}" placeholder="Type here if you prefer">${esc(sv.ans || '')}</textarea></details><div class="row"><button class="ghost show" ${answersUnlocked ? '' : 'hidden'}>💡 Show a good answer</button></div><div class="feedback" ${sv.fb ? '' : 'hidden'}>${esc(sv.fb || '')}</div><div class="model" hidden></div>`;
+        d.innerHTML = `<p><b>${esc(pt.q)}</b></p><details open><summary>…or type it</summary><textarea class="answer" id="${key}-${j}" placeholder="Type here if you prefer">${esc(sv.ans || '')}</textarea></details><div class="row"><button class="ghost show" ${answersUnlocked ? '' : 'hidden'}>💡 Show a good answer</button></div><div class="feedback" ${sv.fb ? '' : 'hidden'}>${esc(sv.fb || '')}</div><div class="model" hidden></div>`;
         const ta = d.querySelector('textarea'), fb = d.querySelector('.feedback'), md = d.querySelector('.model');
         ta.addEventListener('change', () => { const all = mres().problems || {}; all[i] = { ...(all[i] || {}), [j]: { ...((all[i] || {})[j] || {}), ans: ta.value.trim() } }; saveM({ problems: all }); });
         d.querySelector('.show').onclick = () => { md.hidden = false; md.textContent = pt.model || ''; say(pt.model || '', 0.9); };
