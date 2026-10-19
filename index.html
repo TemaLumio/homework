@@ -238,19 +238,24 @@
   <!-- REPORT -->
   <section id="report" hidden>
     <div style="display:grid;gap:12px">
-      <div class="card" id="reportCard">
-        <h2>📄 Homework reports</h2>
-        <p class="tip">Finished for today? Make the PDFs here and send them to Dad.</p>
+      <div class="card">
+        <h2>📄 Reports</h2>
         <div class="feedback" id="recorded"></div>
-        <p class="tip">Makes two PDFs — SPAG and Maths — with your results and all your answers (handwriting included). Then press “Send to Dad” and choose Messages or Mail.</p>
         <div class="row">
-          <input id="childName" placeholder="Child's name" style="flex:1 1 140px;font:700 1rem var(--body);padding:10px;border-radius:12px;border:2px solid var(--line);background:var(--bg);color:var(--fg)">
+          <input id="childName" placeholder="Name (optional, goes into the file name)" style="flex:1 1 220px;font:700 1rem var(--body);padding:10px;border-radius:12px;border:2px solid var(--line);background:var(--bg);color:var(--fg)">
         </div>
-        <div class="row">
-          <button class="big grow" id="makePdf">Make the PDFs</button>
-        </div>
-        <div class="row" id="pdfActions" hidden><button class="big grow" id="pdfSend">📤 Send to Dad</button><button class="ghost" id="pdfSave">💾 Save</button></div>
-        <p class="status" id="pdfStatus"></p>
+      </div>
+      <div class="card" data-rep="SPAG">
+        <h3>✏️📖 SPAG report</h3>
+        <p class="tip">Spelling, reading and your written answers (handwriting included).</p>
+        <div class="row"><button class="big grow mk">Make the PDF</button><button class="big snd" hidden>📤 Send</button><button class="ghost sv" hidden>💾 Save</button></div>
+        <p class="status st"></p>
+      </div>
+      <div class="card" data-rep="Maths" id="mathsRepCard">
+        <h3>🔢 Maths report</h3>
+        <p class="tip">Times tables, column sums and problems with your working (handwriting included).</p>
+        <div class="row"><button class="big grow mk">Make the PDF</button><button class="big snd" hidden>📤 Send</button><button class="ghost sv" hidden>💾 Save</button></div>
+        <p class="status st"></p>
       </div>
     </div>
   </section>
@@ -657,7 +662,7 @@ function saveM(patch) { saveResults({ maths: { ...mres(), ...patch } }); }
 const num = v => { const t = String(v).replace(/[,\s]/g, ''); return t === '' ? null : Number(t); };
 function renderMaths() {
   const M = W.maths; const sec = $('maths');
-  document.querySelector('.tab[data-tab="maths"]').hidden = !M;
+  document.querySelector('.tab[data-tab="maths"]').hidden = !M; const mrc = $('mathsRepCard'); if (mrc) mrc.hidden = !M;
   if (!M) return;
   $('mathsIntro').textContent = M.intro || '';
   // --- times tables
@@ -770,7 +775,6 @@ function mathsSummary() {
 
 // ===================== REPORT PDF =====================
 let noteText = '';
-$('childName').addEventListener('change', e => { try { localStorage.setItem('spag-name', e.target.value); } catch (err) {} });
 function summary() {
   const r = results(); const lines = [];
   lines.push(`Spelling test (${W.words.length} words): ${r.spellBest != null ? r.spellBest + ' / ' + W.words.length : 'not taken yet'}`);
@@ -786,6 +790,7 @@ function pdfSafe(t) {
     .replace(/−/g, '-').replace(/×/g, 'x').replace(/÷/g, '/').replace(/☐/g, '[ ]').replace(/[–—]/g, '-').replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/…/g, '...').replace(/✓/g, 'OK').replace(/✗/g, 'X').replace(/·/g, '-')
     .replace(/[^\x00-\x7F -ÿ]/g, '');
 }
+const dateStamp = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 function newDoc() {
   const { jsPDF } = window.jspdf; const doc = new jsPDF({ unit: 'mm', format: 'a4' }); let y = 18; const L = 15, Wd = 180;
   const h = (txt, size = 11, bold = false) => { txt = pdfSafe(txt); doc.setFont('helvetica', bold ? 'bold' : 'normal'); doc.setFontSize(size); const ls = doc.splitTextToSize(txt, Wd); if (y + ls.length * size * 0.45 > 285) { doc.addPage(); y = 18; } doc.text(ls, L, y); y += ls.length * size * 0.45 + 2; };
@@ -810,7 +815,7 @@ function buildSpagPdf(name) {
   });
   if (noteText) { gap(2); h('Note', 13, true); h(noteText, 11); }
   gap(4); h('Message for the teacher (copy and paste):', 10, true); h(`Dear Ms Christodoulou, please find attached ${name || 'my child'}'s completed SPAG homework for ${W.title} (spelling practice and reading comprehension). Kind regards`, 9);
-  return { blob: doc.output('blob'), fname: `SPAG ${W.title}${name ? ' - ' + name : ''}.pdf`, lines, subject: 'SPAG' };
+  return { blob: doc.output('blob'), fname: `SPAG ${W.title} ${dateStamp()}${name ? ' ' + pdfSafe(name) : ''}.pdf`, lines, subject: 'SPAG' };
 }
 function buildMathsPdf(name) {
   const { doc, h, img, gap } = newDoc(); const M = W.maths, m = mres(); const lines = mathsSummary();
@@ -824,9 +829,10 @@ function buildMathsPdf(name) {
     M.problems.forEach((pr, i) => { h(`${i + 1}. ${pr.title}`, 11, true); h(pr.text, 9); img(inks[W.id + '-prob' + i]);
       pr.parts.forEach((pt, j) => { const sv = ((m.problems || {})[i] || {})[j] || {}; h(`${pt.q}: ${sv.ans || '(no answer)'}${pt.type !== 'text' ? (sv.ok ? ' ✓' : sv.ans ? ' ✗' : '') : ''}`, 10); if (sv.fb) h('Feedback: ' + sv.fb, 9); }); gap(2); }); }
   gap(4); h('Message for the teacher (copy and paste):', 10, true); h(`Dear Ms Christodoulou, please find attached ${name || 'my child'}'s completed maths homework for ${W.title}. Kind regards`, 9);
-  return { blob: doc.output('blob'), fname: `Maths ${W.title}${name ? ' - ' + name : ''}.pdf`, lines, subject: 'Maths' };
+  return { blob: doc.output('blob'), fname: `Maths ${W.title} ${dateStamp()}${name ? ' ' + pdfSafe(name) : ''}.pdf`, lines, subject: 'Maths' };
 }
-let lastPdfs = [];
+document.querySelector('.tab[data-tab="report"]').addEventListener('click', refreshRecorded);
+$('childName').addEventListener('change', e => { try { localStorage.setItem('spag-name', e.target.value); } catch (err) {} });
 function recordedSummary() {
   const r = results(), m = r.maths || {}; const inkN = Object.keys(inks).filter(k => k.startsWith(W.id) && inks[k].hasInk()).length;
   const parts = [];
@@ -840,28 +846,21 @@ function recordedSummary() {
   return { text: 'Recorded in this app on this iPad: ' + parts.join(' · '), empty };
 }
 function refreshRecorded() { const el = $('recorded'); if (!el) return; const { text, empty } = recordedSummary(); el.innerHTML = esc(text) + (empty ? '\n\n⚠️ Nothing is recorded here yet. Results live in the copy of the app where the work was done: if you solved in Safari, make the PDF in Safari; if from the Home Screen icon, make it there. Also press Check after each answer so it is saved.' : ''); el.style.borderLeft = empty ? '4px solid var(--bad)' : ''; }
-document.querySelector('.tab[data-tab="report"]').addEventListener('click', refreshRecorded);
-$('makePdf').onclick = () => {
-  const st = $('pdfStatus'); st.textContent = 'Building the PDFs…';
-  try {
-    const name = $('childName').value || ''; lastPdfs = [buildSpagPdf(name)]; if (W.maths) lastPdfs.push(buildMathsPdf(name));
-    $('pdfActions').hidden = false; st.textContent = lastPdfs.length === 2 ? 'Two PDFs are ready: SPAG and Maths.' : 'PDF is ready.'; refreshRecorded();
-  } catch (e) { st.textContent = 'Could not make the PDF: ' + (e.message || e.code || ''); }
-};
-$('pdfSave').onclick = () => {
-  const st = $('pdfStatus'); if (!lastPdfs.length) return;
-  lastPdfs.forEach(p => { const a = document.createElement('a'); a.href = URL.createObjectURL(p.blob); a.download = p.fname; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000); });
-  st.textContent = 'Saved to Downloads (Files app).';
-};
-$('pdfSend').onclick = async () => {
-  const st = $('pdfStatus'); if (!lastPdfs.length) return;
-  const files = lastPdfs.map(p => new File([p.blob], p.fname, { type: 'application/pdf' }));
-  if (navigator.canShare && navigator.canShare({ files })) {
-    try { await navigator.share({ files, title: `Homework ${W.title}`, text: `${$('childName').value || ''} homework ${W.title}: ${lastPdfs.map(p => p.subject).join(' + ')}` }); st.textContent = '✓ Sent!'; say('Sent!', 1); }
-    catch (e) { if (e.name !== 'AbortError') st.textContent = 'Could not share. Use “Save” and share from Files.'; }
-  } else { st.textContent = 'Sharing is not available in this browser. Use “Save” and share from Files.'; }
-};
 
+document.querySelectorAll('[data-rep]').forEach(card => {
+  const subj = card.dataset.rep, st = card.querySelector('.st'), snd = card.querySelector('.snd'), sv = card.querySelector('.sv'); let pdf = null;
+  card.querySelector('.mk').onclick = () => {
+    st.textContent = 'Building the PDF…';
+    try { const name = $('childName').value.trim(); pdf = subj === 'SPAG' ? buildSpagPdf(name) : buildMathsPdf(name); snd.hidden = sv.hidden = false; st.textContent = 'Ready: ' + pdf.fname; refreshRecorded(); }
+    catch (e) { st.textContent = 'Could not make the PDF: ' + (e.message || e.code || ''); }
+  };
+  sv.onclick = () => { if (!pdf) return; const a = document.createElement('a'); a.href = URL.createObjectURL(pdf.blob); a.download = pdf.fname; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000); st.textContent = 'Saved to Downloads (Files app).'; };
+  snd.onclick = async () => {
+    if (!pdf) return; const files = [new File([pdf.blob], pdf.fname, { type: 'application/pdf' })];
+    if (navigator.canShare && navigator.canShare({ files })) { try { await navigator.share({ files, title: pdf.fname }); st.textContent = '✓ Sent!'; say('Sent!', 1); } catch (e) { if (e.name !== 'AbortError') st.textContent = 'Could not share. Use “Save” and share from Files.'; } }
+    else st.textContent = 'Sharing is not available in this browser. Use “Save” and share from Files.';
+  };
+});
 // ===================== SCROLL HELPERS =====================
 (function () {
   const bar = $('scrollbar'), up = $('scrollUp'), down = $('scrollDown');
