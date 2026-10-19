@@ -55,7 +55,8 @@
   .chips { display: flex; gap: 6px; flex-wrap: wrap; }
   .chip { font: 700 .9rem var(--body); border: 2px solid var(--line); border-radius: 999px; padding: 6px 12px; background: var(--paper); color: var(--fg); cursor: pointer; }
   .chip[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
-  .tabs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  @media (max-width: 520px) { .tabs { grid-template-columns: 1fr 1fr; } .tab { font-size: 1rem; padding: 10px; } }
   .tt { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
   .tt label { display: flex; align-items: center; gap: 6px; font: 700 1.05rem var(--display); background: var(--bg); border: 2px solid var(--line); border-radius: 12px; padding: 6px 8px; font-variant-numeric: tabular-nums; }
   .tt label span { flex: 1; }
@@ -123,6 +124,7 @@
     <button class="tab" role="tab" aria-selected="true" data-tab="spell">✏️ Spelling</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="read">📖 Reading</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="maths">🔢 Maths</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="report">📄 Report</button>
   </div>
 
   <!-- SPELLING -->
@@ -195,18 +197,6 @@
         <p class="tip">Like the long questions on your sheet. Say your answer out loud first, then <b>write it with your Apple Pencil</b> in the box, or type it. Then press 💡 to compare with a good answer.</p>
       </div>
       <div id="thinkList" style="display:grid;gap:12px"></div>
-      <div class="card" id="reportCard">
-        <h2>📄 Homework reports</h2>
-        <p class="tip">Makes two PDFs — SPAG and Maths — with your results and all your answers (handwriting included). Then press “Send to Dad” and choose Messages or Mail.</p>
-        <div class="row">
-          <input id="childName" placeholder="Child's name" style="flex:1 1 140px;font:700 1rem var(--body);padding:10px;border-radius:12px;border:2px solid var(--line);background:var(--bg);color:var(--fg)">
-        </div>
-        <div class="row">
-          <button class="big grow" id="makePdf">Make the PDFs</button>
-        </div>
-        <div class="row" id="pdfActions" hidden><button class="big grow" id="pdfSend">📤 Send to Dad</button><button class="ghost" id="pdfSave">💾 Save</button></div>
-        <p class="status" id="pdfStatus"></p>
-      </div>
     </div>
   </section>
 
@@ -232,6 +222,25 @@
     <div id="mprob" style="display:grid;gap:12px" hidden>
       <div class="card"><h2>Problem solving and reasoning</h2><p class="tip">Read the problem (or press 🔊). Do your working with the pencil, then type each answer. For “explain” questions, compare with the good answer afterwards.</p></div>
       <div id="probList" style="display:grid;gap:12px"></div>
+    </div>
+  </section>
+
+  <!-- REPORT -->
+  <section id="report" hidden>
+    <div style="display:grid;gap:12px">
+      <div class="card" id="reportCard">
+        <h2>📄 Homework reports</h2>
+        <p class="tip">Finished for today? Make the PDFs here and send them to Dad.</p>
+        <p class="tip">Makes two PDFs — SPAG and Maths — with your results and all your answers (handwriting included). Then press “Send to Dad” and choose Messages or Mail.</p>
+        <div class="row">
+          <input id="childName" placeholder="Child's name" style="flex:1 1 140px;font:700 1rem var(--body);padding:10px;border-radius:12px;border:2px solid var(--line);background:var(--bg);color:var(--fg)">
+        </div>
+        <div class="row">
+          <button class="big grow" id="makePdf">Make the PDFs</button>
+        </div>
+        <div class="row" id="pdfActions" hidden><button class="big grow" id="pdfSend">📤 Send to Dad</button><button class="ghost" id="pdfSave">💾 Save</button></div>
+        <p class="status" id="pdfStatus"></p>
+      </div>
     </div>
   </section>
 
@@ -354,7 +363,7 @@ function sayWord(w, slow = false) { say(slow ? w.split('').join(' ') : `${w}. ${
 // ===================== TABS =====================
 document.querySelectorAll('.tab').forEach(b => b.onclick = () => {
   document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', x === b));
-  ['spell','read','maths'].forEach(id => $(id).hidden = id !== b.dataset.tab); stopSpeech();
+  ['spell','read','maths','report'].forEach(id => $(id).hidden = id !== b.dataset.tab); stopSpeech();
 });
 document.querySelectorAll('.subtabs').forEach(group => group.querySelectorAll('.sub').forEach(b => b.onclick = () => {
   group.querySelectorAll('.sub').forEach(x => { x.setAttribute('aria-selected', x === b); $(x.dataset.sub).hidden = x !== b; }); stopSpeech();
