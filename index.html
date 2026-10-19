@@ -64,7 +64,7 @@
   .chip { font: 700 .9rem var(--body); border: 2px solid var(--line); border-radius: 999px; padding: 6px 12px; background: var(--paper); color: var(--fg); cursor: pointer; }
   .chip[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
   .tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-  @media (max-width: 520px) { .tabs { grid-template-columns: 1fr 1fr; } .tab { font-size: 1rem; padding: 10px; } }
+  @media (max-width: 520px) { .tabs { grid-template-columns: 1fr 1fr; } .tab { font-size: 1rem; padding: 10px; } .ink-canvas { height: 340px !important; } }
   .tt { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
   .tt label { display: flex; align-items: center; gap: 6px; font: 700 1.05rem var(--display); background: var(--bg); border: 2px solid var(--line); border-radius: 12px; padding: 6px 8px; font-variant-numeric: tabular-nums; }
   .tt label span { flex: 1; }
@@ -590,8 +590,12 @@ function results() { try { return JSON.parse(localStorage.getItem('spag-res-' + 
 function saveResults(patch) { try { localStorage.setItem('spag-res-' + W.id, JSON.stringify({ ...results(), ...patch })); } catch (e) {} }
 
 // ===================== INK CANVAS (Apple Pencil / finger) =====================
+function effCell(opts, width) { // shrink the squares on narrow screens so the whole sum fits
+  const want = opts.cell || 36; const minCols = opts.prefill ? Math.max(String(opts.prefill.a).length, String(opts.prefill.b).length) + 3 : (opts.grid ? 7 : 1);
+  return Math.max(36, Math.min(want, Math.floor(width / minCols)));
+}
 function drawPrefill(c, opts, color) { // prints the sum's digits into the grid so the child writes straight underneath
-  if (!opts.prefill) return; const cell = opts.cell || 36, { a, op, b } = opts.prefill; const A = String(a), B = String(b), w = Math.max(A.length, B.length), col0 = 2;
+  if (!opts.prefill) return; const cell = opts._cell || opts.cell || 36, { a, op, b } = opts.prefill; const A = String(a), B = String(b), w = Math.max(A.length, B.length), col0 = 2;
   c.save(); c.fillStyle = color; c.font = `700 ${Math.round(cell * 0.68)}px "Baloo 2", "Arial Rounded MT Bold", system-ui, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle';
   const put = (ch, col, row) => c.fillText(ch, (col + 0.5) * cell, (row + 0.5) * cell);
   [...A].forEach((ch, i) => put(ch, col0 + w - A.length + i, 1));
@@ -611,6 +615,11 @@ function makeInk(host, key, opts = {}) {
   let strokes = []; try { strokes = JSON.parse(localStorage.getItem('spag-ink-' + key) || '[]'); } catch (e) {}
   let erasing = false, cur = null, lastPen = 0;
   const penB = host.querySelector('.pen'), erB = host.querySelector('.erase');
+  let penColor = ''; try { penColor = localStorage.getItem('spag-pen') || ''; } catch (e) {}
+  const COLORS = { '': { label: '⚫', css: '' }, '#1e56d6': { label: '🔵', css: '#1e56d6' }, '#d8302e': { label: '🔴', css: '#d8302e' } };
+  const colBox = document.createElement('span'); colBox.className = 'row'; colBox.style.gap = '4px';
+  Object.entries(COLORS).forEach(([val, def]) => { const b = document.createElement('button'); b.className = 'ghost col'; b.style.padding = '6px 8px'; b.textContent = def.label; b.dataset.c = val; b.onclick = () => { penColor = val; try { localStorage.setItem('spag-pen', val); } catch (e) {} setMode(false); colBox.querySelectorAll('.col').forEach(x => x.style.background = x.dataset.c === val ? 'var(--sun-soft)' : ''); }; if (val === penColor) b.style.background = 'var(--sun-soft)'; colBox.appendChild(b); });
+  penB.after(colBox);
   const setMode = e => { erasing = e; penB.setAttribute('aria-pressed', !e); erB.setAttribute('aria-pressed', e); penB.style.background = e ? '' : 'var(--sun-soft)'; erB.style.background = e ? 'var(--sun-soft)' : ''; };
   penB.onclick = () => setMode(false); erB.onclick = () => setMode(true); setMode(false);
   let lastRect = { width: 800, height: 260 };
@@ -619,13 +628,14 @@ function makeInk(host, key, opts = {}) {
     const r = size(), d = devicePixelRatio || 1; ctx.setTransform(d, 0, 0, d, 0, 0); ctx.clearRect(0, 0, r.width, r.height);
     // background: squared grid for maths, ruled lines for writing
     ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--line'); ctx.lineWidth = 1;
-    if (opts.grid) { const cell = opts.cell || 36; ctx.globalAlpha = 0.7; for (let x = cell; x < r.width; x += cell) { ctx.beginPath(); ctx.moveTo(x + .5, 0); ctx.lineTo(x + .5, r.height); ctx.stroke(); } for (let y = cell; y < r.height; y += cell) { ctx.beginPath(); ctx.moveTo(0, y + .5); ctx.lineTo(r.width, y + .5); ctx.stroke(); } ctx.globalAlpha = 1; }
+    opts._cell = effCell(opts, r.width);
+    if (opts.grid) { const cell = opts._cell; ctx.globalAlpha = 0.7; for (let x = cell; x < r.width; x += cell) { ctx.beginPath(); ctx.moveTo(x + .5, 0); ctx.lineTo(x + .5, r.height); ctx.stroke(); } for (let y = cell; y < r.height; y += cell) { ctx.beginPath(); ctx.moveTo(0, y + .5); ctx.lineTo(r.width, y + .5); ctx.stroke(); } ctx.globalAlpha = 1; }
     else for (let y = 40; y < r.height; y += 40) { ctx.beginPath(); ctx.moveTo(8, y); ctx.lineTo(r.width - 8, y); ctx.stroke(); }
     ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     for (const s of strokes) {
-      if (s.t === 's') { drawStamp(ctx, s, r, getComputedStyle(document.documentElement).getPropertyValue('--fg')); continue; }
+      if (s.t === 's') { drawStamp(ctx, s, r, s.c || getComputedStyle(document.documentElement).getPropertyValue('--fg')); continue; }
       ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
-      ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--fg'); ctx.lineWidth = s.e ? 24 : 2.6;
+      ctx.strokeStyle = s.c || getComputedStyle(document.documentElement).getPropertyValue('--fg'); ctx.lineWidth = s.e ? 24 : 2.6;
       ctx.beginPath(); s.p.forEach(([x, y], i) => { const X = x * r.width, Y = y * r.height; i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); }); ctx.stroke();
     }
     ctx.globalCompositeOperation = 'source-over';
@@ -635,8 +645,8 @@ function makeInk(host, key, opts = {}) {
   const pos = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]; };
   cv.addEventListener('pointerdown', e => {
     if (e.pointerType === 'pen') lastPen = Date.now(); else if (e.pointerType === 'touch' && Date.now() - lastPen < 3000) return; // palm rejection while the pencil is in use
-    if (pendingStamp) { const [x, y] = pos(e); strokes.push({ t: 's', s: pendingStamp, x, y, cell: opts.cell || 80 }); pendingStamp = null; host.querySelectorAll('.stamp').forEach(b => b.style.background = ''); save(); draw(); e.preventDefault(); return; }
-    cv.setPointerCapture(e.pointerId); cur = { p: [pos(e)], e: erasing }; strokes.push(cur); e.preventDefault();
+    if (pendingStamp) { const [x, y] = pos(e); strokes.push({ t: 's', s: pendingStamp, x, y, cell: opts._cell || opts.cell || 80, c: penColor }); pendingStamp = null; host.querySelectorAll('.stamp').forEach(b => b.style.background = ''); save(); draw(); e.preventDefault(); return; }
+    cv.setPointerCapture(e.pointerId); cur = { p: [pos(e)], e: erasing, c: penColor }; strokes.push(cur); e.preventDefault();
   });
   host.querySelectorAll('.stamp').forEach(b => b.onclick = () => { const on = pendingStamp === b.dataset.s; pendingStamp = on ? null : b.dataset.s; host.querySelectorAll('.stamp').forEach(x => x.style.background = x === b && !on ? 'var(--sun-soft)' : ''); });
   cv.addEventListener('pointermove', e => { if (!cur) return; if (e.getCoalescedEvents) e.getCoalescedEvents().forEach(ev => cur.p.push(pos(ev))); else cur.p.push(pos(e)); draw(); e.preventDefault(); });
@@ -650,8 +660,9 @@ function makeInk(host, key, opts = {}) {
     toImage: () => { // white background, for the PDF; independent of whether the canvas is currently visible
       const rr = cv.getBoundingClientRect(); const r = (rr.width > 0 && rr.height > 0) ? rr : lastRect; const out = document.createElement('canvas'), d = 2; out.width = Math.round(r.width * d); out.height = Math.round(r.height * d);
       const c = out.getContext('2d'); c.fillStyle = '#fff'; c.fillRect(0, 0, out.width, out.height); c.scale(d, d); c.lineCap = 'round'; c.lineJoin = 'round';
-      if (opts.grid) { const cell = opts.cell || 36; c.strokeStyle = '#d8d8d8'; c.lineWidth = 0.6; for (let x = cell; x < r.width; x += cell) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, r.height); c.stroke(); } for (let y = cell; y < r.height; y += cell) { c.beginPath(); c.moveTo(0, y); c.lineTo(r.width, y); c.stroke(); } }
-      for (const s of strokes) { if (s.t === 's') { drawStamp(c, s, r, '#1b2a4a'); continue; } c.globalCompositeOperation = s.e ? 'destination-out' : 'source-over'; c.strokeStyle = '#1b2a4a'; c.lineWidth = s.e ? 24 : 2.6; c.beginPath(); s.p.forEach(([x, y], i) => { i ? c.lineTo(x * r.width, y * r.height) : c.moveTo(x * r.width, y * r.height); }); c.stroke(); }
+      opts._cell = effCell(opts, r.width);
+      if (opts.grid) { const cell = opts._cell; c.strokeStyle = '#d8d8d8'; c.lineWidth = 0.6; for (let x = cell; x < r.width; x += cell) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, r.height); c.stroke(); } for (let y = cell; y < r.height; y += cell) { c.beginPath(); c.moveTo(0, y); c.lineTo(r.width, y); c.stroke(); } }
+      for (const s of strokes) { if (s.t === 's') { drawStamp(c, s, r, s.c || '#1b2a4a'); continue; } c.globalCompositeOperation = s.e ? 'destination-out' : 'source-over'; c.strokeStyle = s.c || '#1b2a4a'; c.lineWidth = s.e ? 24 : 2.6; c.beginPath(); s.p.forEach(([x, y], i) => { i ? c.lineTo(x * r.width, y * r.height) : c.moveTo(x * r.width, y * r.height); }); c.stroke(); }
       c.globalCompositeOperation = 'destination-over'; c.fillStyle = '#fff'; c.fillRect(0, 0, r.width, r.height);
       c.globalCompositeOperation = 'source-over'; drawPrefill(c, opts, '#777');
       return out;
