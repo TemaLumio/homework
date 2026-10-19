@@ -1,0 +1,529 @@
+[
+ {
+  "id": "week6",
+  "title": "Week 6",
+  "order": 6,
+  "pattern": {
+   "title": "Words ending in -sion",
+   "tip": "The ending -sion sounds like “zhun” (division) or “shun” (explosion). Tap a word to hear it. Say it, then spell it out loud."
+  },
+  "words": [
+   "division",
+   "invasion",
+   "confusion",
+   "decision",
+   "collision",
+   "television",
+   "revision",
+   "erosion",
+   "inclusion",
+   "explosion"
+  ],
+  "sentences": {
+   "division": "Six divided by two is a sum in division.",
+   "invasion": "The castle was ready for an invasion.",
+   "confusion": "There was confusion about which door to use.",
+   "decision": "It was a hard decision to make.",
+   "collision": "The two toy cars had a collision.",
+   "television": "We watched a film on television.",
+   "revision": "I did some revision before the test.",
+   "erosion": "The waves cause erosion of the cliffs.",
+   "inclusion": "Inclusion means everyone can join in.",
+   "explosion": "The firework made a loud explosion."
+  },
+  "reading": {
+   "title": "Strange but True: Animals",
+   "passages": [
+    {
+     "pic": "🐨",
+     "title": "Koala fingerprints",
+     "text": "Koalas live in Australia and love hugging trees. Their fingerprints look almost the same as human fingerprints, even more alike than a chimpanzee's. Australian police were warned not to mix them up at a crime scene!"
+    },
+    {
+     "pic": "🐸",
+     "title": "The frozen wood frog",
+     "text": "In North America the wood frog freezes solid for up to 8 months. In winter its heart stops and its blood stops flowing. When spring comes, it thaws out and hops away."
+    },
+    {
+     "pic": "🐔",
+     "title": "T. rex's closest relative",
+     "text": "Birds are the closest living relatives of dinosaurs. Scientists found substances inside T. rex fossils that match what is found in chickens, so the chicken is the dinosaur king's nearest modern relative."
+    },
+    {
+     "pic": "🦈",
+     "title": "The Tudor shark",
+     "text": "Greenland sharks in the cold North Atlantic live for about 250 to 400 years. In 2007 one was found that might have been up to 512 years old, born around the time of Henry VIII. Nobody knows its exact age, so scientists say the age is estimated."
+    },
+    {
+     "pic": "🦔",
+     "title": "Four identical babies",
+     "text": "The nine-banded armadillo from North America is the only vertebrate that always gives birth to four identical quadruplets. Scientists still don't know why."
+    },
+    {
+     "pic": "🐦",
+     "title": "Pigeon maths",
+     "text": "Primates such as monkeys can think mathematically. Pigeons can too: they were trained to peck at groups of objects in order, 1, 2, 3, to earn a reward. That order is called a sequence."
+    },
+    {
+     "pic": "🦎",
+     "title": "New legs for the axolotl",
+     "text": "The axolotl is a critically endangered amphibian from Mexico, a kind of salamander. If it loses a leg it simply grows a new one, and sometimes an extra one."
+    },
+    {
+     "pic": "✨",
+     "title": "Quick facts",
+     "text": "Baby elephants suck their trunks for comfort. Tigers have striped skin under their striped fur, and every tiger's stripes are unique. Flamingos eat with their heads upside down. All swans in England and Wales belong to the King. Female lions do 90 per cent of the hunting. One kind of jellyfish may live forever."
+    }
+   ],
+   "glossary": [
+    [
+     "amphibian",
+     "A cold-blooded animal with a backbone, like a frog, toad or newt. Babies have gills; adults breathe air."
+    ],
+    [
+     "primates",
+     "Mammals with hands, hand-like feet and forward-facing eyes: monkeys, apes, lemurs."
+    ],
+    [
+     "quadruplets",
+     "Four babies born at the same time."
+    ],
+    [
+     "vertebrate",
+     "Any animal with a backbone."
+    ],
+    [
+     "estimated",
+     "Worked out roughly, not measured exactly."
+    ]
+   ]
+  },
+  "quiz": [
+   {
+    "q": "How long does a wood frog stay frozen each year?",
+    "a": [
+     "Up to 8 months",
+     "4 months",
+     "6 months",
+     "7 months"
+    ]
+   },
+   {
+    "q": "The fossils of a T. rex…",
+    "a": [
+     "contain substances identical to those in a chicken",
+     "were found with an age of 512 years",
+     "have fingerprints like a human's",
+     "enter a frozen state every winter"
+    ]
+   },
+   {
+    "q": "The koala…",
+    "a": [
+     "has fingerprints almost identical to a human's",
+     "freezes solid every winter",
+     "gives birth to quadruplets",
+     "can grow a new leg"
+    ]
+   },
+   {
+    "q": "A Greenland shark…",
+    "a": [
+     "was found with an estimated age of up to 512 years",
+     "lives in the Pacific Ocean",
+     "can think mathematically",
+     "is a type of amphibian"
+    ]
+   },
+   {
+    "q": "The nine-banded armadillo always has how many babies?",
+    "a": [
+     "Four identical quadruplets",
+     "Two twins",
+     "One baby",
+     "Nine babies"
+    ]
+   },
+   {
+    "q": "Which animal is the only vertebrate to always have identical quadruplets?",
+    "a": [
+     "Nine-banded armadillo",
+     "Koala",
+     "Axolotl",
+     "Greenland shark"
+    ]
+   },
+   {
+    "q": "In 'Winged Mathematicians', which word means 'a particular order in which things follow each other'?",
+    "a": [
+     "Sequence",
+     "Reward",
+     "Objects",
+     "Research"
+    ]
+   },
+   {
+    "q": "What percentage of the hunting do female lions do?",
+    "a": [
+     "90 per cent",
+     "50 per cent",
+     "10 per cent",
+     "100 per cent"
+    ]
+   },
+   {
+    "q": "Which animal can grow a replacement limb?",
+    "a": [
+     "Axolotl",
+     "Pigeon",
+     "Flamingo",
+     "Tiger"
+    ]
+   },
+   {
+    "q": "Who owns all the swans in England and Wales?",
+    "a": [
+     "The King",
+     "The Prime Minister",
+     "Nobody",
+     "The zoo"
+    ]
+   },
+   {
+    "q": "Why is the shark's age described as 'estimated'?",
+    "a": [
+     "Nobody knows exactly how old it was; it's a careful guess",
+     "Because sharks can't count",
+     "Because it was exactly 512",
+     "Because it was born in 2007"
+    ]
+   },
+   {
+    "q": "Which animal is the closest living relative of T. rex?",
+    "a": [
+     "The chicken",
+     "The koala",
+     "The crocodile",
+     "The pigeon"
+    ]
+   }
+  ],
+  "open": [
+   {
+    "q": "A Greenland shark was found with an estimated age of up to 512 years. Why is the age called 'estimated'?",
+    "starters": "I think the age is estimated because… / Scientists can't know exactly because…",
+    "model": "The age is estimated because scientists cannot know exactly how old the shark was. They worked it out roughly from clues, so it is a careful guess, not an exact number."
+   },
+   {
+    "q": "The text begins: 'Is it possible for something to still be alive since before the time of Henry VIII?' Why did the author start with a question?",
+    "starters": "The author uses a question to make the reader… / It makes you want to…",
+    "model": "The author starts with a question to make the reader curious and want to read on. It makes you think about the answer and makes the fact about the very old shark more surprising."
+   },
+   {
+    "q": "Which creature did you find the most interesting? Why?",
+    "starters": "The most interesting creature was the … because… / I was surprised that…",
+    "model": "Any animal is a good answer if you give a reason from the text. For example: I found the axolotl most interesting because it can grow a new leg if it loses one, and even grow an extra one."
+   },
+   {
+    "q": "Give one piece of evidence from the text that chickens are linked to dinosaurs.",
+    "starters": "The text says that scientists found… / One piece of evidence is…",
+    "model": "The text says that scientists found substances in T. rex fossils that are identical to substances found in chickens. This shows chickens and dinosaurs are linked."
+   }
+  ],
+  "maths": {
+   "title": "Maths Group 8 · Week 6",
+   "unit": "Addition and Subtraction",
+   "intro": "We are finishing the Addition and Subtraction unit: adding and subtracting big numbers with the column method, estimating by rounding, and solving word problems. On Friday there is a mixed times-tables test.",
+   "timesTables": [
+    {
+     "q": "7 × 8",
+     "a": 56
+    },
+    {
+     "q": "96 ÷ 12",
+     "a": 8
+    },
+    {
+     "q": "9 × ☐ = 81",
+     "a": 9
+    },
+    {
+     "q": "42 ÷ 6",
+     "a": 7
+    },
+    {
+     "q": "12 × 5",
+     "a": 60
+    },
+    {
+     "q": "☐ × 4 = 36",
+     "a": 9
+    },
+    {
+     "q": "3 × 11",
+     "a": 33
+    },
+    {
+     "q": "84 ÷ ☐ = 12",
+     "a": 7
+    },
+    {
+     "q": "72 ÷ 8",
+     "a": 9
+    },
+    {
+     "q": "☐ ÷ 9 = 4",
+     "a": 36
+    },
+    {
+     "q": "6 × 7",
+     "a": 42
+    },
+    {
+     "q": "56 ÷ 7",
+     "a": 8
+    },
+    {
+     "q": "2 × ☐ = 22",
+     "a": 11
+    },
+    {
+     "q": "121 ÷ 11",
+     "a": 11
+    },
+    {
+     "q": "11 × 8",
+     "a": 88
+    },
+    {
+     "q": "63 ÷ 9",
+     "a": 7
+    },
+    {
+     "q": "144 ÷ ☐ = 12",
+     "a": 12
+    },
+    {
+     "q": "10 × 6",
+     "a": 60
+    },
+    {
+     "q": "☐ × 12 = 60",
+     "a": 5
+    },
+    {
+     "q": "4 × 9",
+     "a": 36
+    },
+    {
+     "q": "132 ÷ 11",
+     "a": 12
+    },
+    {
+     "q": "8 × ☐ = 64",
+     "a": 8
+    },
+    {
+     "q": "1 × 12",
+     "a": 12
+    },
+    {
+     "q": "55 ÷ 5",
+     "a": 11
+    },
+    {
+     "q": "12 × 12",
+     "a": 144
+    },
+    {
+     "q": "☐ ÷ 3 = 7",
+     "a": 21
+    },
+    {
+     "q": "108 ÷ 12",
+     "a": 9
+    },
+    {
+     "q": "7 × 11",
+     "a": 77
+    },
+    {
+     "q": "6 × ☐ = 42",
+     "a": 7
+    },
+    {
+     "q": "90 ÷ 10",
+     "a": 9
+    }
+   ],
+   "sums": [
+    [
+     7834,
+     "+",
+     3621
+    ],
+    [
+     4693,
+     "-",
+     3142
+    ],
+    [
+     4078,
+     "+",
+     2815
+    ],
+    [
+     5634,
+     "-",
+     3471
+    ],
+    [
+     12674,
+     "+",
+     1215
+    ],
+    [
+     26489,
+     "+",
+     11214
+    ],
+    [
+     36545,
+     "-",
+     21313
+    ],
+    [
+     57624,
+     "+",
+     21446
+    ],
+    [
+     31675,
+     "-",
+     20262
+    ],
+    [
+     7393,
+     "-",
+     4123
+    ]
+   ],
+   "problems": [
+    {
+     "title": "Estimate, then calculate",
+     "pic": "🔎",
+     "text": "Use an estimation for each calculation, then calculate the actual answer.",
+     "parts": [
+      {
+       "q": "a) 3454 + 2865 — estimated answer",
+       "type": "estimate",
+       "answer": 6319,
+       "hint": "Round each number to the nearest hundred or thousand first."
+      },
+      {
+       "q": "a) 3454 + 2865 — actual answer",
+       "type": "number",
+       "answer": 6319
+      },
+      {
+       "q": "b) 6237 − 1566 — estimated answer",
+       "type": "estimate",
+       "answer": 4671,
+       "hint": "Round each number to the nearest hundred first."
+      },
+      {
+       "q": "b) 6237 − 1566 — actual answer",
+       "type": "number",
+       "answer": 4671
+      }
+     ]
+    },
+    {
+     "title": "What could the calculation be?",
+     "pic": "🤔",
+     "text": "a) Here is the estimation of an addition calculation: 2400 + 3200 = 5600. Write 2 different addition calculations it could be.\nb) Here is the estimation of a subtraction calculation: 7600 − 2300 = 5300. Write 2 different subtraction calculations it could be.",
+     "parts": [
+      {
+       "q": "a) Two addition calculations that round to 2400 + 3200",
+       "type": "text",
+       "model": "Any two sums where the first number rounds to 2400 and the second to 3200, for example 2381 + 3219 and 2449 + 3150."
+      },
+      {
+       "q": "b) Two subtraction calculations that round to 7600 − 2300",
+       "type": "text",
+       "model": "Any two subtractions where the first number rounds to 7600 and the second to 2300, for example 7612 − 2287 and 7550 − 2340."
+      }
+     ]
+    },
+    {
+     "title": "Is Tyreec right?",
+     "pic": "🧐",
+     "text": "Tyreec completed this calculation: 4517 + 3221 = 9738. Use estimation to show how you know that Tyreec is not correct.",
+     "parts": [
+      {
+       "q": "Explain using estimation",
+       "type": "text",
+       "model": "4517 rounds to 4500 and 3221 rounds to 3200. 4500 + 3200 = 7700, which is much less than 9738, so Tyreec's answer is far too big. The real answer is 7738."
+      }
+     ]
+    },
+    {
+     "title": "The School Book Fair",
+     "pic": "📚",
+     "text": "A school book fair sold 2,485 books on Monday and 1,768 books on Tuesday. The school had originally ordered 5,000 books for the fair.",
+     "parts": [
+      {
+       "q": "a) How many books were sold altogether on Monday and Tuesday?",
+       "type": "number",
+       "answer": 4253
+      },
+      {
+       "q": "b) How many books were left unsold?",
+       "type": "number",
+       "answer": 747
+      }
+     ]
+    },
+    {
+     "title": "The School Trip",
+     "pic": "🚌",
+     "text": "A school is organising a trip for its students. There are 1,245 students in the school. On the first day, 368 students signed up for the trip. On the second day, another 457 students signed up.",
+     "parts": [
+      {
+       "q": "a) How many students signed up altogether?",
+       "type": "number",
+       "answer": 825
+      },
+      {
+       "q": "b) How many students have not signed up yet?",
+       "type": "number",
+       "answer": 420
+      }
+     ]
+    },
+    {
+     "title": "Planting Trees in Cyprus",
+     "pic": "🌳",
+     "text": "A community plans to plant 3,500 trees across several areas in Cyprus. In the first week, volunteers planted 1,275 trees. In the second week, they planted 968 trees. During a storm, 146 of the trees already planted were damaged and had to be removed.",
+     "parts": [
+      {
+       "q": "a) How many trees were planted in total before the storm?",
+       "type": "number",
+       "answer": 2243
+      },
+      {
+       "q": "b) How many trees remained after the damaged trees were removed?",
+       "type": "number",
+       "answer": 2097
+      },
+      {
+       "q": "c) How many more trees need to be planted to reach the original target of 3,500 healthy trees?",
+       "type": "number",
+       "answer": 1403
+      }
+     ]
+    }
+   ]
+  }
+ }
+]

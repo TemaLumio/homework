@@ -1,0 +1,892 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Homework">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" href="icon.png">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)} body{margin:0;font:14px system-ui} img{max-width:100%} [hidden]{display:none!important}</style>
+</head>
+<body>
+<title>SPAG & Maths Homework</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@500;700&display=swap">
+<style>
+  /* Layout: one-screen kid app. Week chips on top, two tabs (Spell / Read), sub-modes inside. Parent zone at the bottom. */
+  :root {
+    --bg: #fbf6e9; --paper: #ffffff; --fg: #27312a; --muted: #6d7a6f; --line: #e2dccb;
+    --accent: #2f8f6b; --accent-ink: #ffffff; --sun: #f4b63f; --sun-soft: #fff1cf;
+    --ok: #2f8f6b; --ok-soft: #dff3e8; --bad: #d85a4a; --bad-soft: #fde3de;
+    --shadow: 0 2px 0 #d9d2bf;
+    --display: "Baloo 2", "Arial Rounded MT Bold", system-ui, sans-serif;
+    --body: "Nunito", "Segoe UI", system-ui, sans-serif;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1c2320; --paper: #26302b; --fg: #eef3ee; --muted: #a3b0a6; --line: #38443d;
+      --accent: #4fc296; --accent-ink: #10231b; --sun: #f4c35c; --sun-soft: #3d3420;
+      --ok: #4fc296; --ok-soft: #1f3a2f; --bad: #ff7b6b; --bad-soft: #43262a;
+      --shadow: 0 2px 0 #131a16; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1c2320; --paper: #26302b; --fg: #eef3ee; --muted: #a3b0a6; --line: #38443d;
+    --accent: #4fc296; --accent-ink: #10231b; --sun: #f4c35c; --sun-soft: #3d3420;
+    --ok: #4fc296; --ok-soft: #1f3a2f; --bad: #ff7b6b; --bad-soft: #43262a;
+    --shadow: 0 2px 0 #131a16; color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 17px; line-height: 1.45;
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 12px 40px;
+  }
+  .wrap { max-width: 640px; margin: 0 auto; display: grid; gap: 14px; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  h1 { font-family: var(--display); font-size: 1.7rem; margin: 0; line-height: 1.1; text-wrap: balance; }
+  h1 small { display: block; font-family: var(--body); font-size: .85rem; font-weight: 700; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+  h2 { font-family: var(--display); font-size: 1.3rem; margin: 0; text-wrap: balance; }
+  h3 { font-family: var(--display); font-size: 1.1rem; margin: 0; }
+  p { margin: 0; } .muted { color: var(--muted); }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip { font: 700 .9rem var(--body); border: 2px solid var(--line); border-radius: 999px; padding: 6px 12px; background: var(--paper); color: var(--fg); cursor: pointer; }
+  .chip[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .tabs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .tt { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+  .tt label { display: flex; align-items: center; gap: 6px; font: 700 1.05rem var(--display); background: var(--bg); border: 2px solid var(--line); border-radius: 12px; padding: 6px 8px; font-variant-numeric: tabular-nums; }
+  .tt label span { flex: 1; }
+  .tt input { width: 64px; font: 700 1.1rem var(--display); text-align: center; border: 2px solid var(--line); border-radius: 8px; padding: 4px; background: var(--paper); color: var(--fg); }
+  .tt label.ok { border-color: var(--ok); background: var(--ok-soft); } .tt label.bad { border-color: var(--bad); background: var(--bad-soft); }
+  .colsum { font: 700 1.6rem ui-monospace, "SF Mono", Menlo, monospace; letter-spacing: .25em; text-align: right; display: inline-block; padding: 6px 12px; background: var(--bg); border-radius: 12px; font-variant-numeric: tabular-nums; }
+  .colsum div:last-child { border-top: 3px solid var(--fg); }
+  input.num { width: 140px; font: 700 1.3rem var(--display); text-align: center; border: 2px solid var(--line); border-radius: 12px; padding: 8px; background: var(--bg); color: var(--fg); font-variant-numeric: tabular-nums; }
+  input.num.ok { border-color: var(--ok); background: var(--ok-soft); } input.num.bad { border-color: var(--bad); background: var(--bad-soft); }
+  .tab { font-family: var(--display); font-size: 1.15rem; font-weight: 700; border: 2px solid var(--line); border-radius: 16px; background: var(--paper); color: var(--fg); padding: 12px; box-shadow: var(--shadow); cursor: pointer; }
+  .tab[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .subtabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  .sub { font: 700 .95rem var(--body); border: 2px solid var(--line); border-radius: 999px; padding: 8px 14px; background: var(--paper); color: var(--fg); cursor: pointer; }
+  .sub[aria-selected="true"] { background: var(--sun-soft); border-color: var(--sun); }
+  .card { background: var(--paper); border: 2px solid var(--line); border-radius: 18px; padding: 16px; box-shadow: var(--shadow); display: grid; gap: 12px; min-width: 0; }
+  .card.now { border-color: var(--sun); background: var(--sun-soft); }
+  button.big { font-family: var(--display); font-size: 1.15rem; font-weight: 700; border: 0; border-radius: 14px; padding: 14px 18px; background: var(--accent); color: var(--accent-ink); cursor: pointer; box-shadow: var(--shadow); }
+  button.big.alt { background: var(--sun-soft); color: var(--fg); border: 2px solid var(--sun); }
+  button.ghost { font: 700 .95rem var(--body); background: transparent; border: 2px solid var(--line); border-radius: 12px; padding: 10px 14px; color: var(--fg); cursor: pointer; }
+  button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
+  button:disabled { opacity: .5; cursor: default; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; } .row > * { min-width: 0; } .grow { flex: 1 1 160px; }
+  .between { justify-content: space-between; }
+  .words { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+  .word { font-family: var(--display); font-size: 1.35rem; font-weight: 700; text-align: left; background: var(--paper); border: 2px solid var(--line); border-radius: 14px; padding: 12px 14px; color: var(--fg); cursor: pointer; box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .word .suf { color: var(--accent); } .word .sp { font-size: 1rem; } .word.done { border-color: var(--ok); background: var(--ok-soft); }
+  input.answer, textarea.answer { width: 100%; font: 700 1.6rem var(--display); letter-spacing: .06em; padding: 12px 14px; border-radius: 14px; border: 2px solid var(--line); background: var(--bg); color: var(--fg); text-align: center; text-transform: lowercase; }
+  textarea.answer { font: 500 1.05rem var(--body); letter-spacing: 0; text-align: left; text-transform: none; min-height: 90px; resize: vertical; }
+  textarea.plain { width: 100%; font: 500 .95rem var(--body); padding: 10px; border-radius: 12px; border: 2px solid var(--line); background: var(--bg); color: var(--fg); min-height: 80px; }
+  .letters { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; font: 700 1.5rem var(--display); }
+  .letters span { padding: 2px 6px; border-radius: 8px; min-width: 1.2em; text-align: center; }
+  .letters .ok { background: var(--ok-soft); color: var(--ok); } .letters .bad { background: var(--bad-soft); color: var(--bad); text-decoration: line-through; } .letters .miss { background: var(--sun-soft); }
+  .progress { height: 10px; background: var(--line); border-radius: 999px; overflow: hidden; } .progress i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .3s; }
+  @media (prefers-reduced-motion: reduce) { .progress i { transition: none; } }
+  .verdict { font-family: var(--display); font-size: 1.3rem; font-weight: 800; } .verdict.ok { color: var(--ok); } .verdict.bad { color: var(--bad); }
+  .stars { font-size: 2rem; letter-spacing: .1em; }
+  .fact .pic { font-size: 2.4rem; line-height: 1; }
+  .opts { display: grid; gap: 8px; }
+  .opt { text-align: left; font: 700 1.05rem var(--body); background: var(--bg); border: 2px solid var(--line); border-radius: 12px; padding: 12px 14px; color: var(--fg); cursor: pointer; }
+  .opt.ok { background: var(--ok-soft); border-color: var(--ok); } .opt.bad { background: var(--bad-soft); border-color: var(--bad); }
+  .gloss { display: grid; gap: 8px; }
+  .gloss button { text-align: left; font: 700 1.05rem var(--body); background: var(--bg); border: 2px solid var(--line); border-radius: 12px; padding: 12px 14px; color: var(--fg); cursor: pointer; }
+  .gloss button span { display: block; font-weight: 500; color: var(--muted); margin-top: 4px; }
+  .tip { font-size: .95rem; color: var(--muted); border-left: 4px solid var(--sun); padding-left: 10px; }
+  .feedback { background: var(--bg); border-radius: 12px; padding: 12px; font-size: 1rem; white-space: pre-wrap; }
+  .model { background: var(--ok-soft); border-radius: 12px; padding: 12px; }
+  ul.plain { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; }
+  details summary { cursor: pointer; font: 700 1rem var(--body); color: var(--muted); }
+  .status { font-size: .95rem; }
+  input[type=file] { font: 500 .95rem var(--body); color: var(--fg); max-width: 100%; }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1><small id="weekLabel">Weekly homework</small><span id="weekTitle">SPAG &amp; Maths</span></h1>
+    <div class="row">
+      <select id="voiceSel" aria-label="Choose a voice" hidden style="font:700 .9rem var(--body);padding:8px 10px;border-radius:12px;border:2px solid var(--line);background:var(--paper);color:var(--fg);max-width:200px"></select>
+      <button class="ghost" id="voiceBtn">🔊 Test</button>
+    </div>
+  </header>
+  <p class="tip" id="voiceTip">Best voice: on the iPad go to Settings → Accessibility → Spoken Content → Voices → English (UK) and download <b>Daniel (Enhanced)</b> or <b>Serena (Premium)</b>. Then pick it in the menu above (★). <button class="ghost" style="padding:4px 10px;font-size:.85rem" onclick="this.parentElement.hidden=true;try{localStorage.setItem('spag-voicetip','1')}catch(e){}">Got it</button></p>
+  <div class="chips" id="weekChips" role="tablist"></div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="true" data-tab="spell">✏️ Spelling</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="read">📖 Reading</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="maths">🔢 Maths</button>
+  </div>
+
+  <!-- SPELLING -->
+  <section id="spell">
+    <div class="subtabs" role="tablist">
+      <button class="sub" role="tab" aria-selected="true" data-sub="look">1 · Look &amp; listen</button>
+      <button class="sub" role="tab" aria-selected="false" data-sub="practice">2 · Practise</button>
+      <button class="sub" role="tab" aria-selected="false" data-sub="test">3 · Friday test</button>
+    </div>
+    <div id="look" class="card">
+      <h2 id="patternTitle"></h2>
+      <p class="tip" id="patternTip"></p>
+      <div class="words" id="wordGrid"></div>
+      <button class="big alt" id="playAll">▶ Hear all the words</button>
+    </div>
+    <div id="practice" class="card" hidden>
+      <div class="row between"><h2>Listen &amp; type</h2><span class="muted" id="pracCount"></span></div>
+      <div class="progress"><i id="pracBar"></i></div>
+      <div class="row"><button class="big grow" id="pracHear">🔊 Hear the word</button><button class="ghost" id="pracSlow">🐢 Slowly</button></div>
+      <input class="answer" id="pracInput" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="type here" aria-label="Type the word">
+      <div class="letters" id="pracLetters"></div>
+      <p class="verdict" id="pracVerdict"></p>
+      <div class="row"><button class="big grow" id="pracCheck">Check ✓</button><button class="ghost" id="pracNext" hidden>Next →</button><button class="ghost" id="pracPeek">👀 Show me</button></div>
+    </div>
+    <div id="test" class="card" hidden>
+      <div id="testStart">
+        <h2>Friday test</h2>
+        <p>All the words, mixed up, no peeking. You hear each word; press 🔊 again if you need it. Ready?</p>
+        <div style="margin-top:12px"><button class="big" id="testGo">Start the test</button></div>
+        <p class="muted" id="bestScore" style="margin-top:10px"></p>
+      </div>
+      <div id="testRun" hidden style="display:grid;gap:12px">
+        <h2>Word <span id="testNum">1</span> of <span id="testTotal"></span></h2>
+        <div class="progress"><i id="testBar"></i></div>
+        <button class="big" id="testHear">🔊 Hear the word</button>
+        <input class="answer" id="testInput" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="type here" aria-label="Type the word">
+        <button class="big alt" id="testSubmit">Next →</button>
+      </div>
+      <div id="testDone" hidden style="display:grid;gap:12px">
+        <h2 id="testTitle"></h2><div class="stars" id="testStars"></div><p class="verdict" id="testScore"></p>
+        <div id="testReview"></div><button class="big" id="testAgain">Try again</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- READING -->
+  <section id="read" hidden>
+    <div class="subtabs" role="tablist">
+      <button class="sub" role="tab" aria-selected="true" data-sub="facts">1 · Read &amp; listen</button>
+      <button class="sub" role="tab" aria-selected="false" data-sub="quiz">2 · Quiz</button>
+      <button class="sub" role="tab" aria-selected="false" data-sub="think">3 · My answers</button>
+    </div>
+    <div id="facts" style="display:grid;gap:12px">
+      <div class="card">
+        <h2 id="readTitle"></h2>
+        <p class="tip">The text is retold here in simple words. Press ▶ to hear the whole thing read aloud; the part being read lights up. Follow along with the sheet.</p>
+        <div class="row"><button class="big grow" id="readAll">▶ Read the whole text to me</button><button class="ghost" id="readStop">⏹ Stop</button></div>
+      </div>
+      <div id="factList" style="display:grid;gap:12px"></div>
+      <div class="card" id="glossCard"><h3>Glossary — tap a word to see what it means</h3><div class="gloss" id="glossList"></div></div>
+    </div>
+    <div id="quiz" class="card" hidden>
+      <div class="row between"><h2>Quiz</h2><span class="muted" id="quizCount"></span></div>
+      <div class="progress"><i id="quizBar"></i></div>
+      <div id="quizBody" style="display:grid;gap:12px"></div>
+    </div>
+    <div id="think" style="display:grid;gap:12px" hidden>
+      <div class="card">
+        <h2>Answer in your own words</h2>
+        <p class="tip">Like the long questions on your sheet. Say your answer out loud first, then <b>write it with your Apple Pencil</b> in the box, or type it. <span id="thinkHint">Then press 💡 to compare with a good answer.</span></p>
+      </div>
+      <div id="thinkList" style="display:grid;gap:12px"></div>
+      <div class="card" id="reportCard">
+        <h2>📄 Homework reports</h2>
+        <p class="tip">Makes two PDFs — SPAG and Maths — with your results and all your answers (handwriting included). Then press “Send to Dad” and choose Messages or Mail.</p>
+        <div class="row">
+          <input id="childName" placeholder="Child's name" style="flex:1 1 140px;font:700 1rem var(--body);padding:10px;border-radius:12px;border:2px solid var(--line);background:var(--bg);color:var(--fg)">
+        </div>
+        <div class="row">
+          <button class="big grow" id="makePdf">Make the PDFs</button>
+          <button class="ghost" id="teacherNote" hidden>✨ Add Claude's note</button>
+        </div>
+        <div class="feedback" id="noteBox" hidden></div>
+        <div class="row" id="pdfActions" hidden><button class="big grow" id="pdfSend">📤 Send to Dad</button><button class="ghost" id="pdfSave">💾 Save</button></div>
+        <p class="status" id="pdfStatus"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- MATHS -->
+  <section id="maths" hidden>
+    <div class="subtabs" role="tablist">
+      <button class="sub" role="tab" aria-selected="true" data-sub="mtt">1 · Times tables</button>
+      <button class="sub" role="tab" aria-selected="false" data-sub="msums">2 · Column sums</button>
+      <button class="sub" role="tab" aria-selected="false" data-sub="mprob">3 · Problems</button>
+    </div>
+    <div id="mtt" class="card">
+      <h2 id="mttTitle">Times tables — Friday test</h2>
+      <p class="tip" id="mathsIntro"></p>
+      <div class="row between"><span class="muted">Type the missing number. ☐ means “what number goes here?”</span><span class="muted" id="mttTimer"></span></div>
+      <div class="tt" id="ttGrid"></div>
+      <div class="row"><button class="big grow" id="ttCheck">Check all ✓</button><button class="ghost" id="ttSpeak">🔊 Read them to me</button><button class="ghost" id="ttReset">Start again</button></div>
+      <p class="verdict" id="ttVerdict"></p>
+    </div>
+    <div id="msums" style="display:grid;gap:12px" hidden>
+      <div class="card"><h2>Column addition and subtraction</h2><p class="tip">Work it out with your pencil in the box, type the answer, then check it with the inverse operation (the opposite sum) like on your sheet.</p></div>
+      <div id="sumList" style="display:grid;gap:12px"></div>
+    </div>
+    <div id="mprob" style="display:grid;gap:12px" hidden>
+      <div class="card"><h2>Problem solving and reasoning</h2><p class="tip">Read the problem (or press 🔊). Do your working with the pencil, then type each answer. For “explain” questions, compare with the good answer afterwards.</p></div>
+      <div id="probList" style="display:grid;gap:12px"></div>
+    </div>
+  </section>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+// ===================== DEFAULT WEEK (used when the store is empty or unavailable) =====================
+const DEFAULT_WEEK = {
+  id: "week6", title: "Week 6", order: 6,
+  pattern: { title: "Words ending in -sion", tip: "The ending -sion sounds like “zhun” (division) or “shun” (explosion). Tap a word to hear it. Say it, then spell it out loud." },
+  words: ["division","invasion","confusion","decision","collision","television","revision","erosion","inclusion","explosion"],
+  sentences: { division:"Six divided by two is a sum in division.", invasion:"The castle was ready for an invasion.", confusion:"There was confusion about which door to use.", decision:"It was a hard decision to make.", collision:"The two toy cars had a collision.", television:"We watched a film on television.", revision:"I did some revision before the test.", erosion:"The waves cause erosion of the cliffs.", inclusion:"Inclusion means everyone can join in.", explosion:"The firework made a loud explosion." },
+  reading: {
+    title: "Strange but True: Animals",
+    passages: [
+      { pic:"🐨", title:"Koala fingerprints", text:"Koalas live in Australia and love hugging trees. Their fingerprints look almost the same as human fingerprints, even more alike than a chimpanzee's. Australian police were warned not to mix them up at a crime scene!" },
+      { pic:"🐸", title:"The frozen wood frog", text:"In North America the wood frog freezes solid for up to 8 months. In winter its heart stops and its blood stops flowing. When spring comes, it thaws out and hops away." },
+      { pic:"🐔", title:"T. rex's closest relative", text:"Birds are the closest living relatives of dinosaurs. Scientists found substances inside T. rex fossils that match what is found in chickens, so the chicken is the dinosaur king's nearest modern relative." },
+      { pic:"🦈", title:"The Tudor shark", text:"Greenland sharks in the cold North Atlantic live for about 250 to 400 years. In 2007 one was found that might have been up to 512 years old, born around the time of Henry VIII. Nobody knows its exact age, so scientists say the age is estimated." },
+      { pic:"🦔", title:"Four identical babies", text:"The nine-banded armadillo from North America is the only vertebrate that always gives birth to four identical quadruplets. Scientists still don't know why." },
+      { pic:"🐦", title:"Pigeon maths", text:"Primates such as monkeys can think mathematically. Pigeons can too: they were trained to peck at groups of objects in order, 1, 2, 3, to earn a reward. That order is called a sequence." },
+      { pic:"🦎", title:"New legs for the axolotl", text:"The axolotl is a critically endangered amphibian from Mexico, a kind of salamander. If it loses a leg it simply grows a new one, and sometimes an extra one." },
+      { pic:"✨", title:"Quick facts", text:"Baby elephants suck their trunks for comfort. Tigers have striped skin under their striped fur, and every tiger's stripes are unique. Flamingos eat with their heads upside down. All swans in England and Wales belong to the King. Female lions do 90 per cent of the hunting. One kind of jellyfish may live forever." }
+    ],
+    glossary: [["amphibian","A cold-blooded animal with a backbone, like a frog, toad or newt. Babies have gills; adults breathe air."],["primates","Mammals with hands, hand-like feet and forward-facing eyes: monkeys, apes, lemurs."],["quadruplets","Four babies born at the same time."],["vertebrate","Any animal with a backbone."],["estimated","Worked out roughly, not measured exactly."]]
+  },
+  quiz: [
+    { q:"How long does a wood frog stay frozen each year?", a:["Up to 8 months","4 months","6 months","7 months"] },
+    { q:"The fossils of a T. rex…", a:["contain substances identical to those in a chicken","were found with an age of 512 years","have fingerprints like a human's","enter a frozen state every winter"] },
+    { q:"The koala…", a:["has fingerprints almost identical to a human's","freezes solid every winter","gives birth to quadruplets","can grow a new leg"] },
+    { q:"A Greenland shark…", a:["was found with an estimated age of up to 512 years","lives in the Pacific Ocean","can think mathematically","is a type of amphibian"] },
+    { q:"The nine-banded armadillo always has how many babies?", a:["Four identical quadruplets","Two twins","One baby","Nine babies"] },
+    { q:"Which animal is the only vertebrate to always have identical quadruplets?", a:["Nine-banded armadillo","Koala","Axolotl","Greenland shark"] },
+    { q:"In 'Winged Mathematicians', which word means 'a particular order in which things follow each other'?", a:["Sequence","Reward","Objects","Research"] },
+    { q:"What percentage of the hunting do female lions do?", a:["90 per cent","50 per cent","10 per cent","100 per cent"] },
+    { q:"Which animal can grow a replacement limb?", a:["Axolotl","Pigeon","Flamingo","Tiger"] },
+    { q:"Who owns all the swans in England and Wales?", a:["The King","The Prime Minister","Nobody","The zoo"] },
+    { q:"Why is the shark's age described as 'estimated'?", a:["Nobody knows exactly how old it was; it's a careful guess","Because sharks can't count","Because it was exactly 512","Because it was born in 2007"] },
+    { q:"Which animal is the closest living relative of T. rex?", a:["The chicken","The koala","The crocodile","The pigeon"] }
+  ],
+  open: [
+    { q:"A Greenland shark was found with an estimated age of up to 512 years. Why is the age called 'estimated'?", starters:"I think the age is estimated because… / Scientists can't know exactly because…", model:"The age is estimated because scientists cannot know exactly how old the shark was. They worked it out roughly from clues, so it is a careful guess, not an exact number." },
+    { q:"The text begins: 'Is it possible for something to still be alive since before the time of Henry VIII?' Why did the author start with a question?", starters:"The author uses a question to make the reader… / It makes you want to…", model:"The author starts with a question to make the reader curious and want to read on. It makes you think about the answer and makes the fact about the very old shark more surprising." },
+    { q:"Which creature did you find the most interesting? Why?", starters:"The most interesting creature was the … because… / I was surprised that…", model:"Any animal is a good answer if you give a reason from the text. For example: I found the axolotl most interesting because it can grow a new leg if it loses one, and even grow an extra one." },
+    { q:"Give one piece of evidence from the text that chickens are linked to dinosaurs.", starters:"The text says that scientists found… / One piece of evidence is…", model:"The text says that scientists found substances in T. rex fossils that are identical to substances found in chickens. This shows chickens and dinosaurs are linked." }
+  ],
+  maths: {
+    title: "Maths Group 8 · Week 6",
+    unit: "Addition and Subtraction",
+    intro: "We are finishing the Addition and Subtraction unit: adding and subtracting big numbers with the column method, estimating by rounding, and solving word problems. On Friday there is a mixed times-tables test.",
+    timesTables: [
+      {q:"7 × 8",a:56},{q:"96 ÷ 12",a:8},{q:"9 × ☐ = 81",a:9},{q:"42 ÷ 6",a:7},{q:"12 × 5",a:60},{q:"☐ × 4 = 36",a:9},{q:"3 × 11",a:33},{q:"84 ÷ ☐ = 12",a:7},{q:"72 ÷ 8",a:9},{q:"☐ ÷ 9 = 4",a:36},
+      {q:"6 × 7",a:42},{q:"56 ÷ 7",a:8},{q:"2 × ☐ = 22",a:11},{q:"121 ÷ 11",a:11},{q:"11 × 8",a:88},{q:"63 ÷ 9",a:7},{q:"144 ÷ ☐ = 12",a:12},{q:"10 × 6",a:60},{q:"☐ × 12 = 60",a:5},{q:"4 × 9",a:36},
+      {q:"132 ÷ 11",a:12},{q:"8 × ☐ = 64",a:8},{q:"1 × 12",a:12},{q:"55 ÷ 5",a:11},{q:"12 × 12",a:144},{q:"☐ ÷ 3 = 7",a:21},{q:"108 ÷ 12",a:9},{q:"7 × 11",a:77},{q:"6 × ☐ = 42",a:7},{q:"90 ÷ 10",a:9}
+    ],
+    sums: [[7834,"+",3621],[4693,"-",3142],[4078,"+",2815],[5634,"-",3471],[12674,"+",1215],[26489,"+",11214],[36545,"-",21313],[57624,"+",21446],[31675,"-",20262],[7393,"-",4123]],
+    problems: [
+      { title:"Estimate, then calculate", pic:"🔎", text:"Use an estimation for each calculation, then calculate the actual answer.", parts:[
+        {q:"a) 3454 + 2865 — estimated answer", type:"estimate", answer:6319, hint:"Round each number to the nearest hundred or thousand first."},
+        {q:"a) 3454 + 2865 — actual answer", type:"number", answer:6319},
+        {q:"b) 6237 − 1566 — estimated answer", type:"estimate", answer:4671, hint:"Round each number to the nearest hundred first."},
+        {q:"b) 6237 − 1566 — actual answer", type:"number", answer:4671} ] },
+      { title:"What could the calculation be?", pic:"🤔", text:"a) Here is the estimation of an addition calculation: 2400 + 3200 = 5600. Write 2 different addition calculations it could be.\nb) Here is the estimation of a subtraction calculation: 7600 − 2300 = 5300. Write 2 different subtraction calculations it could be.", parts:[
+        {q:"a) Two addition calculations that round to 2400 + 3200", type:"text", model:"Any two sums where the first number rounds to 2400 and the second to 3200, for example 2381 + 3219 and 2449 + 3150."},
+        {q:"b) Two subtraction calculations that round to 7600 − 2300", type:"text", model:"Any two subtractions where the first number rounds to 7600 and the second to 2300, for example 7612 − 2287 and 7550 − 2340."} ] },
+      { title:"Is Tyreec right?", pic:"🧐", text:"Tyreec completed this calculation: 4517 + 3221 = 9738. Use estimation to show how you know that Tyreec is not correct.", parts:[
+        {q:"Explain using estimation", type:"text", model:"4517 rounds to 4500 and 3221 rounds to 3200. 4500 + 3200 = 7700, which is much less than 9738, so Tyreec's answer is far too big. The real answer is 7738."} ] },
+      { title:"The School Book Fair", pic:"📚", text:"A school book fair sold 2,485 books on Monday and 1,768 books on Tuesday. The school had originally ordered 5,000 books for the fair.", parts:[
+        {q:"a) How many books were sold altogether on Monday and Tuesday?", type:"number", answer:4253},
+        {q:"b) How many books were left unsold?", type:"number", answer:747} ] },
+      { title:"The School Trip", pic:"🚌", text:"A school is organising a trip for its students. There are 1,245 students in the school. On the first day, 368 students signed up for the trip. On the second day, another 457 students signed up.", parts:[
+        {q:"a) How many students signed up altogether?", type:"number", answer:825},
+        {q:"b) How many students have not signed up yet?", type:"number", answer:420} ] },
+      { title:"Planting Trees in Cyprus", pic:"🌳", text:"A community plans to plant 3,500 trees across several areas in Cyprus. In the first week, volunteers planted 1,275 trees. In the second week, they planted 968 trees. During a storm, 146 of the trees already planted were damaged and had to be removed.", parts:[
+        {q:"a) How many trees were planted in total before the storm?", type:"number", answer:2243},
+        {q:"b) How many trees remained after the damaged trees were removed?", type:"number", answer:2097},
+        {q:"c) How many more trees need to be planted to reach the original target of 3,500 healthy trees?", type:"number", answer:1403} ] }
+    ]
+  }
+};
+
+// ===================== SPEECH =====================
+let voice = null;
+const voiceRank = v => (/premium/i.test(v.name) ? 0 : /enhanced/i.test(v.name) ? 1 : /Google UK/i.test(v.name) ? 2 : 3) + (/en-GB/i.test(v.lang) ? 0 : 10);
+function pickVoice() {
+  const vs = speechSynthesis.getVoices().filter(v => /^en/i.test(v.lang)).sort((a, b) => voiceRank(a) - voiceRank(b) || a.name.localeCompare(b.name));
+  let saved = null; try { saved = localStorage.getItem('spag-voice'); } catch (e) {}
+  voice = vs.find(v => v.voiceURI === saved) || vs.find(v => /en-GB/i.test(v.lang)) || vs[0] || null;
+  const sel = document.getElementById('voiceSel'); if (!sel) return;
+  sel.innerHTML = vs.map(v => `<option value="${v.voiceURI}" ${v === voice ? 'selected' : ''}>${v.name.replace(/\(.*?\)\s*/g, '')}${/premium|enhanced/i.test(v.name) ? ' ★' : ''} · ${v.lang}</option>`).join('');
+  sel.hidden = vs.length < 2;
+}
+const hasTTS = 'speechSynthesis' in window;
+if (hasTTS) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+function say(text, rate = 0.9, onend) {
+  if (!hasTTS) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  if (voice) u.voice = voice; u.lang = voice?.lang || 'en-GB'; u.rate = rate; u.pitch = 1.0;
+  if (onend) u.onend = onend;
+  speechSynthesis.speak(u);
+}
+function stopSpeech() { if (hasTTS) speechSynthesis.cancel(); }
+document.getElementById('voiceBtn').onclick = () => say("Hello! Let's do our homework.");
+document.getElementById('voiceSel').onchange = e => {
+  voice = speechSynthesis.getVoices().find(v => v.voiceURI === e.target.value) || voice;
+  try { localStorage.setItem('spag-voice', e.target.value); } catch (err) {}
+  say("Hello! I'll be reading to you today.");
+};
+
+// ===================== STATE =====================
+let W = DEFAULT_WEEK;          // current week
+let weeks = [DEFAULT_WEEK];    // all weeks
+let db = null, sample = null, user = null, canWrite = false, sampleImages = null;
+const $ = id => document.getElementById(id);
+const shuffle = a => a.map(x => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map(x => x[1]);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function sayWord(w, slow = false) { say(slow ? w.split('').join(' ') : `${w}. ${(W.sentences || {})[w] || ''}`, slow ? 0.6 : 0.9); }
+
+// ===================== TABS =====================
+document.querySelectorAll('.tab').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', x === b));
+  ['spell','read','maths'].forEach(id => $(id).hidden = id !== b.dataset.tab); stopSpeech();
+});
+document.querySelectorAll('.subtabs').forEach(group => group.querySelectorAll('.sub').forEach(b => b.onclick = () => {
+  group.querySelectorAll('.sub').forEach(x => { x.setAttribute('aria-selected', x === b); $(x.dataset.sub).hidden = x !== b; }); stopSpeech();
+}));
+
+// ===================== RENDER WEEK =====================
+function renderWeeks() {
+  const box = $('weekChips'); box.innerHTML = '';
+  weeks.forEach(w => {
+    const b = document.createElement('button'); b.className = 'chip'; b.setAttribute('aria-selected', w.id === W.id); b.textContent = w.title;
+    b.onclick = () => { W = w; renderWeek(); }; box.appendChild(b);
+  });
+}
+function renderWeek() {
+  renderWeeks(); stopSpeech();
+  $('weekTitle').textContent = 'SPAG & Maths Homework'; $('weekLabel').textContent = W.title + (W.maths?.title ? ' · ' + W.maths.title.replace(/·.*$/, '').trim() : '');
+  document.title = `SPAG & Maths Homework · ${W.title}`;
+  // Look
+  $('patternTitle').textContent = W.pattern?.title || 'Spelling words';
+  $('patternTip').textContent = W.pattern?.tip || 'Tap a word to hear it. Say it, then spell it out loud.';
+  const suffix = W.pattern?.suffix || commonSuffix(W.words);
+  const grid = $('wordGrid'); grid.innerHTML = '';
+  W.words.forEach(w => {
+    const b = document.createElement('button'); b.className = 'word';
+    const stem = suffix && w.endsWith(suffix) ? w.slice(0, -suffix.length) : w;
+    b.innerHTML = `<span>${esc(stem)}${suffix && w.endsWith(suffix) ? `<span class="suf">${esc(suffix)}</span>` : ''}</span><span class="sp">🔊</span>`;
+    b.onclick = () => { sayWord(w); b.classList.add('done'); }; grid.appendChild(b);
+  });
+  // Practice & test reset
+  pracOrder = shuffle(W.words); pracIdx = 0; pracDone = 0; pracRender();
+  $('pracInput').value = ''; $('pracLetters').innerHTML = ''; $('pracVerdict').textContent = ''; $('pracNext').hidden = true; $('pracCheck').hidden = false;
+  $('testTotal').textContent = W.words.length; testShow('testStart'); loadBest();
+  // Reading
+  $('readTitle').textContent = W.reading?.title || 'Reading';
+  const fl = $('factList'); fl.innerHTML = '';
+  (W.reading?.passages || []).forEach((f, i) => {
+    const c = document.createElement('div'); c.className = 'card fact'; c.dataset.i = i;
+    c.innerHTML = `<div class="row between"><div class="row"><span class="pic">${esc(f.pic || '📖')}</span><h3>${esc(f.title)}</h3></div><div class="row"><button class="ghost hear">🔊</button><button class="ghost me">🎤 I'll read it</button></div></div><p class="ptext">${esc(f.text)}</p>
+      <div class="readme" hidden style="display:grid;gap:8px">
+        <p class="tip">Tap in the box, press the <b>🎤 microphone key</b> on the keyboard and read the text out loud. When you finish, press <b>Check my reading</b>.</p>
+        <textarea class="answer" id="readme-${W.id}-${i}" placeholder="Your reading will appear here…"></textarea>
+        <div class="row"><button class="big grow chk">Check my reading</button><button class="ghost clr">Clear</button></div>
+        <p class="verdict rv"></p><div class="feedback rf" hidden></div>
+      </div>`;
+    c.querySelector('.hear').onclick = () => { clearNow(); c.classList.add('now'); say(f.title + '. ' + f.text, 0.9, clearNow); };
+    const rm = c.querySelector('.readme'), ta = rm.querySelector('textarea'), rv = rm.querySelector('.rv'), rf = rm.querySelector('.rf'), pt = c.querySelector('.ptext');
+    c.querySelector('.me').onclick = () => { rm.hidden = !rm.hidden; if (!rm.hidden) ta.focus(); };
+    rm.querySelector('.clr').onclick = () => { ta.value = ''; rv.textContent = ''; rf.hidden = true; pt.innerHTML = esc(f.text); };
+    rm.querySelector('.chk').onclick = () => {
+      const heard = ta.value.trim(); if (!heard) { rv.textContent = 'Read it into the box first.'; rv.className = 'verdict bad'; return; }
+      const r = compareReading(f.text, heard);
+      pt.innerHTML = r.html;
+      const pct = Math.round(r.hit / r.total * 100);
+      rv.textContent = pct >= 95 ? `🏆 ${pct}% — brilliant reading!` : pct >= 80 ? `⭐ ${pct}% — well done!` : `${pct}% — good try, let's practise the tricky words.`;
+      rv.className = 'verdict ' + (pct >= 80 ? 'ok' : 'bad');
+      if (r.missed.length) { rf.hidden = false; rf.innerHTML = 'Words to practise (tap to hear): ' + r.missed.map(w => `<button class="ghost" style="padding:4px 10px;margin:2px">${esc(w)}</button>`).join(''); rf.querySelectorAll('button').forEach(b => b.onclick = () => say(b.textContent, 0.8)); }
+      else { rf.hidden = true; }
+      say(pct >= 80 ? 'Well done!' : 'Good try. Let us practise the tricky words.', 1);
+      const rr = results(); const rd = rr.reading || {}; rd[i] = Math.max(pct, rd[i] || 0); saveResults({ reading: rd, readingMissed: [...new Set([...(rr.readingMissed || []), ...r.missed])] });
+    };
+    fl.appendChild(c);
+  });
+  const gl = $('glossList'); gl.innerHTML = '';
+  const gloss = W.reading?.glossary || []; $('glossCard').hidden = !gloss.length;
+  gloss.forEach(([w, d]) => {
+    const b = document.createElement('button'); b.textContent = w;
+    b.onclick = () => { if (!b.querySelector('span')) { const s = document.createElement('span'); s.textContent = d; b.appendChild(s); say(w + '. ' + d); } else b.querySelector('span').remove(); };
+    gl.appendChild(b);
+  });
+  quizStart(); renderThink(); renderMaths();
+}
+function commonSuffix(words) {
+  if (!words?.length) return '';
+  let s = words[0];
+  for (const w of words) { while (s && !w.endsWith(s)) s = s.slice(1); }
+  return s.length >= 3 ? s : '';
+}
+// Word-level comparison of the passage with what the child read (via keyboard dictation).
+const NUMWORDS = { one:'1', two:'2', three:'3', four:'4', five:'5', six:'6', seven:'7', eight:'8', nine:'9', ten:'10', twelve:'12', twenty:'20', fifty:'50', ninety:'90', hundred:'100' };
+function normWord(w) { w = w.toLowerCase().replace(/[^a-z0-9']/g, '').replace(/'s$/, ''); if (NUMWORDS[w]) w = NUMWORDS[w]; if (/^\d+$/.test(w) || /^[ivxlc]+$/.test(w)) return ''; return w; }
+function compareReading(original, heard) {
+  const oTokens = original.split(/\s+/).filter(Boolean);
+  const o = oTokens.map(normWord), h = heard.split(/\s+/).map(normWord).filter(Boolean);
+  // LCS alignment
+  const n = o.length, m = h.length, dp = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
+  for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--) dp[i][j] = o[i] === h[j] || (o[i].length > 3 && h[j].length > 3 && similar(o[i], h[j])) ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
+  const ok = new Array(n).fill(false); let i = 0, j = 0;
+  while (i < n && j < m) { if (o[i] === h[j] || (o[i].length > 3 && h[j].length > 3 && similar(o[i], h[j]))) { ok[i] = true; i++; j++; } else if (dp[i + 1][j] >= dp[i][j + 1]) i++; else j++; }
+  let hit = 0, total = 0; const missed = [];
+  const html = oTokens.map((t, k) => { if (!o[k]) return esc(t); total++; if (ok[k]) { hit++; return `<span style="color:var(--ok)">${esc(t)}</span>`; } missed.push(t.replace(/[^A-Za-z'\-]/g, '')); return `<mark style="background:var(--bad-soft);color:var(--bad);border-radius:4px;padding:0 2px">${esc(t)}</mark>`; }).join(' ');
+  return { html, hit, total: total || 1, missed: [...new Set(missed.filter(Boolean))] };
+}
+function similar(a, b) { // allow one small slip (dictation often mishears endings)
+  if (Math.abs(a.length - b.length) > 1) return false; let d = 0, i = 0, j = 0;
+  while (i < a.length && j < b.length) { if (a[i] === b[j]) { i++; j++; } else { d++; if (d > 1) return false; if (a.length > b.length) i++; else if (b.length > a.length) j++; else { i++; j++; } } }
+  return d + (a.length - i) + (b.length - j) <= 1;
+}
+function clearNow() { document.querySelectorAll('.fact.now').forEach(x => x.classList.remove('now')); }
+$('readAll').onclick = () => {
+  const ps = W.reading?.passages || []; let i = 0;
+  const next = () => { clearNow(); if (i >= ps.length) return; const c = document.querySelector(`.fact[data-i="${i}"]`); c?.classList.add('now'); c?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); const p = ps[i++]; say(p.title + '. ' + p.text, 0.9, next); };
+  next();
+};
+$('readStop').onclick = () => { stopSpeech(); clearNow(); };
+$('playAll').onclick = () => say(W.words.join('. ') + '.', 0.8);
+
+// ===================== PRACTICE =====================
+let pracOrder = [], pracIdx = 0, pracDone = 0;
+const pracInput = $('pracInput'), pracLetters = $('pracLetters'), pracVerdict = $('pracVerdict'), pracNext = $('pracNext'), pracCheck = $('pracCheck');
+const pracCur = () => pracOrder[pracIdx % pracOrder.length];
+function pracRender() { const n = W.words.length; $('pracCount').textContent = `${pracDone} / ${n}`; $('pracBar').style.width = (pracDone / n * 100) + '%'; }
+function diffLetters(typed, target) {
+  const n = Math.max(typed.length, target.length); let html = '';
+  for (let i = 0; i < n; i++) { const t = typed[i] ?? '', g = target[i] ?? ''; html += t === g ? `<span class="ok">${esc(g)}</span>` : !t ? `<span class="miss">${esc(g)}</span>` : `<span class="bad">${esc(t)}</span>`; }
+  return html;
+}
+$('pracHear').onclick = () => { sayWord(pracCur()); pracInput.focus(); };
+$('pracSlow').onclick = () => sayWord(pracCur(), true);
+$('pracPeek').onclick = () => { pracLetters.innerHTML = diffLetters('', pracCur()); pracVerdict.textContent = ''; };
+function pracDoCheck() {
+  const typed = pracInput.value.trim().toLowerCase(), target = pracCur();
+  if (!typed) { sayWord(target); return; }
+  pracLetters.innerHTML = diffLetters(typed, target);
+  if (typed === target) {
+    pracVerdict.textContent = '✓ Correct! ' + target; pracVerdict.className = 'verdict ok'; say('Correct! ' + target, 1);
+    pracDone = Math.min(W.words.length, pracDone + 1); pracRender(); pracNext.hidden = false; pracCheck.hidden = true;
+  } else { pracVerdict.textContent = 'Not quite. Look at the letters and try again.'; pracVerdict.className = 'verdict bad'; say('Not quite. Try again. ' + target, 0.9); pracInput.select(); }
+}
+pracCheck.onclick = pracDoCheck;
+pracInput.addEventListener('keydown', e => { if (e.key === 'Enter') { pracNext.hidden ? pracDoCheck() : pracNext.click(); } });
+pracNext.onclick = () => {
+  pracIdx++; if (pracIdx % pracOrder.length === 0) pracOrder = shuffle(W.words);
+  pracInput.value = ''; pracLetters.innerHTML = ''; pracVerdict.textContent = ''; pracNext.hidden = true; pracCheck.hidden = false;
+  if (pracDone >= W.words.length) { pracVerdict.textContent = '🎉 All of them! Ready for the Friday test?'; pracVerdict.className = 'verdict ok'; pracDone = 0; pracRender(); }
+  sayWord(pracCur()); pracInput.focus();
+};
+
+// ===================== TEST =====================
+let testOrder = [], testIdx = 0, testAns = [];
+const testInput = $('testInput');
+const bestKey = () => 'spag-best-' + W.id;
+function loadBest() { try { const b = localStorage.getItem(bestKey()); $('bestScore').textContent = b ? `Best score so far: ${b} / ${W.words.length}` : ''; } catch (e) { $('bestScore').textContent = ''; } }
+function testShow(id) { ['testStart','testRun','testDone'].forEach(x => $(x).hidden = x !== id); }
+$('testGo').onclick = () => { testOrder = shuffle(W.words); testIdx = 0; testAns = []; testShow('testRun'); testStep(); };
+function testStep() { $('testNum').textContent = testIdx + 1; $('testBar').style.width = (testIdx / testOrder.length * 100) + '%'; testInput.value = ''; sayWord(testOrder[testIdx]); testInput.focus(); }
+$('testHear').onclick = () => sayWord(testOrder[testIdx]);
+function testSubmit() { testAns.push(testInput.value.trim().toLowerCase()); testIdx++; if (testIdx < testOrder.length) testStep(); else testFinish(); }
+$('testSubmit').onclick = testSubmit;
+testInput.addEventListener('keydown', e => { if (e.key === 'Enter') testSubmit(); });
+function testFinish() {
+  testShow('testDone');
+  const n = testOrder.length, score = testOrder.filter((w, i) => testAns[i] === w).length, pct = score / n;
+  $('testTitle').textContent = score === n ? 'Perfect! 🏆' : pct >= .7 ? 'Well done!' : 'Good try. Keep going!';
+  $('testStars').textContent = '⭐'.repeat(Math.max(1, Math.round(pct * 5)));
+  $('testScore').textContent = `${score} / ${n}`; $('testScore').className = 'verdict ' + (pct >= .7 ? 'ok' : 'bad');
+  const wrong = testOrder.map((w, i) => [w, testAns[i]]).filter(([w, a]) => a !== w);
+  $('testReview').innerHTML = wrong.length ? '<p class="muted">Practise these ones:</p><ul class="plain">' + wrong.map(([w, a]) => `<li><b>${esc(w)}</b> <span class="muted">(you wrote “${esc(a || '…')}”)</span></li>`).join('') + '</ul>' : '<p>Every word right. See you on Friday!</p>';
+  say(score === n ? 'Perfect!' : `You got ${score} out of ${n}.`, 1);
+  try { const b = +(localStorage.getItem(bestKey()) || 0); if (score > b) localStorage.setItem(bestKey(), score); } catch (e) {}
+  const prev = results(); if ((prev.spellBest ?? -1) <= score) saveResults({ spellBest: score, spellWrong: wrong.map(([w]) => w) });
+  loadBest();
+}
+$('testAgain').onclick = () => testShow('testStart');
+
+// ===================== QUIZ =====================
+let quizSet = [], quizIdx = 0, quizScore = 0;
+const quizBody = $('quizBody');
+function quizStart() { quizSet = shuffle(W.quiz || []).slice(0, 10); quizIdx = 0; quizScore = 0; quizRender(); }
+function quizRender() {
+  const n = quizSet.length; $('quizCount').textContent = `${Math.min(quizIdx + 1, n)} / ${n}`; $('quizBar').style.width = (n ? quizIdx / n * 100 : 0) + '%';
+  if (!n) { quizBody.innerHTML = '<p class="muted">No quiz this week.</p>'; return; }
+  if (quizIdx >= n) {
+    const pq = results().quizBest; if (!pq || quizScore >= pq.score) saveResults({ quizBest: { score: quizScore, n } });
+    quizBody.innerHTML = `<h3>${quizScore === n ? 'Perfect! 🏆' : quizScore / n >= .7 ? 'Great reading!' : 'Good try!'}</h3><p class="verdict ${quizScore / n >= .7 ? 'ok' : 'bad'}">${quizScore} / ${n}</p><p class="muted">Read the text again and have another go.</p><button class="big">Play again</button>`;
+    quizBody.querySelector('button').onclick = quizStart; return;
+  }
+  const item = quizSet[quizIdx], correct = item.a[0], opts = shuffle(item.a);
+  quizBody.innerHTML = `<div class="row between" style="align-items:flex-start"><h3 style="flex:1 1 200px">${esc(item.q)}</h3><button class="ghost" id="qHear">🔊</button></div><div class="opts"></div><p class="verdict" id="qVerdict"></p><button class="ghost" id="qNext" hidden>Next →</button>`;
+  $('qHear').onclick = () => say(item.q + ' ' + opts.join('. '), 0.9);
+  const box = quizBody.querySelector('.opts');
+  opts.forEach(o => {
+    const b = document.createElement('button'); b.className = 'opt'; b.textContent = o;
+    b.onclick = () => {
+      if (box.dataset.done) return; box.dataset.done = 1;
+      box.querySelectorAll('.opt').forEach(x => { if (x.textContent === correct) x.classList.add('ok'); });
+      const v = $('qVerdict');
+      if (o === correct) { quizScore++; v.textContent = '✓ Correct!'; v.className = 'verdict ok'; say('Correct!', 1); }
+      else { b.classList.add('bad'); v.textContent = 'The answer is: ' + correct; v.className = 'verdict bad'; say('Not quite. The answer is ' + correct, 0.9); }
+      $('qNext').hidden = false;
+    };
+    box.appendChild(b);
+  });
+  $('qNext').onclick = () => { quizIdx++; quizRender(); };
+}
+
+// ===================== RESULTS (per device, per week) =====================
+function results() { try { return JSON.parse(localStorage.getItem('spag-res-' + W.id) || '{}'); } catch (e) { return {}; } }
+function saveResults(patch) { try { localStorage.setItem('spag-res-' + W.id, JSON.stringify({ ...results(), ...patch })); } catch (e) {} }
+
+// ===================== INK CANVAS (Apple Pencil / finger) =====================
+function makeInk(host, key) {
+  host.innerHTML = `<div class="row between"><span class="muted" style="font-size:.9rem">✍️ Write here with your pencil</span><div class="row"><button class="ghost pen" aria-pressed="true" style="padding:6px 10px">✏️</button><button class="ghost erase" aria-pressed="false" style="padding:6px 10px">🧽</button><button class="ghost undo" style="padding:6px 10px">↶</button><button class="ghost clear" style="padding:6px 10px">Clear</button></div></div>
+    <canvas style="width:100%;height:200px;border:2px dashed var(--line);border-radius:12px;background:var(--paper);touch-action:none;display:block"></canvas>`;
+  const cv = host.querySelector('canvas'), ctx = cv.getContext('2d');
+  let strokes = []; try { strokes = JSON.parse(localStorage.getItem('spag-ink-' + key) || '[]'); } catch (e) {}
+  let erasing = false, cur = null, lastPen = 0;
+  const penB = host.querySelector('.pen'), erB = host.querySelector('.erase');
+  const setMode = e => { erasing = e; penB.setAttribute('aria-pressed', !e); erB.setAttribute('aria-pressed', e); penB.style.background = e ? '' : 'var(--sun-soft)'; erB.style.background = e ? 'var(--sun-soft)' : ''; };
+  penB.onclick = () => setMode(false); erB.onclick = () => setMode(true); setMode(false);
+  function size() { const r = cv.getBoundingClientRect(), d = devicePixelRatio || 1; if (cv.width !== Math.round(r.width * d)) { cv.width = Math.round(r.width * d); cv.height = Math.round(r.height * d); } return r; }
+  function draw() {
+    const r = size(), d = devicePixelRatio || 1; ctx.setTransform(d, 0, 0, d, 0, 0); ctx.clearRect(0, 0, r.width, r.height);
+    // ruled lines
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--line'); ctx.lineWidth = 1;
+    for (let y = 40; y < r.height; y += 40) { ctx.beginPath(); ctx.moveTo(8, y); ctx.lineTo(r.width - 8, y); ctx.stroke(); }
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    for (const s of strokes) {
+      ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+      ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--fg'); ctx.lineWidth = s.e ? 24 : 2.6;
+      ctx.beginPath(); s.p.forEach(([x, y], i) => { const X = x * r.width, Y = y * r.height; i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); }); ctx.stroke();
+    }
+    ctx.globalCompositeOperation = 'source-over';
+  }
+  const save = () => { try { localStorage.setItem('spag-ink-' + key, JSON.stringify(strokes)); } catch (e) {} };
+  const pos = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]; };
+  cv.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'pen') lastPen = Date.now(); else if (e.pointerType === 'touch' && Date.now() - lastPen < 3000) return; // palm rejection while the pencil is in use
+    cv.setPointerCapture(e.pointerId); cur = { p: [pos(e)], e: erasing }; strokes.push(cur); e.preventDefault();
+  });
+  cv.addEventListener('pointermove', e => { if (!cur) return; if (e.getCoalescedEvents) e.getCoalescedEvents().forEach(ev => cur.p.push(pos(ev))); else cur.p.push(pos(e)); draw(); e.preventDefault(); });
+  const up = () => { if (cur) { cur = null; save(); } };
+  cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up); cv.addEventListener('pointerleave', up);
+  host.querySelector('.undo').onclick = () => { strokes.pop(); save(); draw(); };
+  host.querySelector('.clear').onclick = () => { strokes = []; save(); draw(); };
+  new ResizeObserver(draw).observe(cv); draw();
+  return {
+    hasInk: () => strokes.some(s => !s.e && s.p.length > 1),
+    toImage: () => { // white background, for Claude and the PDF
+      const r = cv.getBoundingClientRect(), out = document.createElement('canvas'), d = 2; out.width = r.width * d; out.height = r.height * d;
+      const c = out.getContext('2d'); c.fillStyle = '#fff'; c.fillRect(0, 0, out.width, out.height); c.scale(d, d); c.lineCap = 'round'; c.lineJoin = 'round';
+      for (const s of strokes) { c.globalCompositeOperation = s.e ? 'destination-out' : 'source-over'; c.strokeStyle = '#1b2a4a'; c.lineWidth = s.e ? 24 : 2.6; c.beginPath(); s.p.forEach(([x, y], i) => { i ? c.lineTo(x * r.width, y * r.height) : c.moveTo(x * r.width, y * r.height); }); c.stroke(); }
+      c.globalCompositeOperation = 'destination-over'; c.fillStyle = '#fff'; c.fillRect(0, 0, r.width, r.height);
+      return out;
+    }
+  };
+}
+const inks = {};
+
+// ===================== OPEN QUESTIONS =====================
+function renderThink() {
+  const list = $('thinkList'); list.innerHTML = '';
+  $('thinkHint').hidden = !sample; $('teacherNote').hidden = !sample;
+  try { $('childName').value = localStorage.getItem('spag-name') || ''; } catch (e) {}
+  const res = results();
+  (W.open || []).forEach((t, i) => {
+    const key = W.id + '-' + i;
+    const c = document.createElement('div'); c.className = 'card';
+    c.innerHTML = `<div class="row between" style="align-items:flex-start"><h3 style="flex:1 1 200px">${i + 1}. ${esc(t.q)}</h3><button class="ghost hear">🔊</button></div>
+      <p class="tip">Sentence starters: ${esc(t.starters || '')}</p>
+      <div class="ink"></div>
+      <details><summary>…or type your answer</summary><textarea class="answer" id="open-${key}" placeholder="Type your answer here…">${esc((res.answers || {})[i] || '')}</textarea></details>
+      <div class="row"><button class="big grow check" ${sample ? '' : 'hidden'}>Check my answer</button><button class="ghost show">💡 Show a good answer</button></div>
+      <div class="feedback" hidden></div><div class="model" hidden></div>`;
+    const ta = c.querySelector('textarea'), fb = c.querySelector('.feedback'), md = c.querySelector('.model');
+    const ink = makeInk(c.querySelector('.ink'), key); inks[key] = ink;
+    ta.addEventListener('change', () => { const a = results().answers || {}; a[i] = ta.value; saveResults({ answers: a }); });
+    c.querySelector('.hear').onclick = () => say(t.q, 0.9);
+    c.querySelector('.show').onclick = () => { md.hidden = false; md.textContent = t.model || 'Ask a grown-up to help you with this one.'; say(t.model || '', 0.9); };
+    c.querySelector('.check').onclick = async (e) => {
+      const typed = ta.value.trim(), useInk = !typed && ink.hasInk();
+      if (!typed && !useInk) { fb.hidden = false; fb.textContent = 'Write or type your answer first (even one sentence is fine).'; return; }
+      e.target.disabled = true; fb.hidden = false; fb.textContent = 'Thinking…';
+      const ctx = (W.reading?.passages || []).map(p => p.title + ': ' + p.text).join('\n');
+      const prompt = `You are a kind primary-school teacher (UK Year 4-5) marking a child's reading-comprehension answer.${useInk ? ' The answer is HANDWRITTEN in the attached image: read it carefully first.' : ''}
+Reply with ONLY a JSON object: {"transcript": "${useInk ? 'the handwritten answer exactly as you read it' : 'the typed answer as given'}", "feedback": "2-4 short sentences a 9-year-old can read: one thing that is good, then what to add or fix so the answer is complete and uses evidence from the text; if it is already good, say so and suggest one tiny improvement; do not write the full answer for them; be encouraging", "score": 1-3}
+Score: 1 = needs more, 2 = good, 3 = excellent.${useInk ? ' If a word is hard to read, make your best guess and do not mark spelling of unclear words.' : ''}
+
+Text (retold):
+${ctx}
+
+Question: ${t.q}
+A model answer for your reference (do not reveal it word for word): ${t.model || ''}
+${typed ? '\nChild\'s typed answer: ' + typed : ''}`;
+      try {
+        const opts = { modelTier: useInk ? 'default' : 'quick', cache: false };
+        if (useInk) opts.images = await new Promise(r => ink.toImage().toBlob(r, 'image/png'));
+        const r = await sample.json(prompt, opts);
+        const tr = String(r.transcript || ''), fbt = String(r.feedback || '');
+        fb.innerHTML = (useInk && tr ? `<span class="muted">I read: “${esc(tr)}”</span>\n\n` : '') + esc(fbt);
+        say(fbt, 0.95);
+        const a = results().answers || {}, f = results().feedback || {}; if (useInk && tr) a[i] = tr; f[i] = { feedback: fbt, score: Number(r.score) || 0 }; saveResults({ answers: a, feedback: f });
+      } catch (err) {
+        fb.textContent = err.code === 'not_granted' || err.code === 'sampling_disabled' ? 'Checking is not available here. Press “Show a good answer” and compare.' : err.code === 'rate_limited' ? 'Too many checks right now. Try again in a minute.' : err.code === 'images_unavailable' ? 'Handwriting cannot be sent from here. Type the answer instead.' : 'Something went wrong. Try again.';
+        if (err.code === 'not_granted') { sample = null; renderThink(); }
+      } finally { e.target.disabled = false; }
+    };
+    list.appendChild(c);
+  });
+  if (!(W.open || []).length) list.innerHTML = '<p class="muted">No long questions this week.</p>';
+}
+
+
+// ===================== MATHS =====================
+function mres() { return results().maths || {}; }
+function saveM(patch) { saveResults({ maths: { ...mres(), ...patch } }); }
+const num = v => { const t = String(v).replace(/[,\s]/g, ''); return t === '' ? null : Number(t); };
+function renderMaths() {
+  const M = W.maths; const sec = $('maths');
+  document.querySelector('.tab[data-tab="maths"]').hidden = !M;
+  if (!M) return;
+  $('mathsIntro').textContent = M.intro || '';
+  // --- times tables
+  const tt = M.timesTables || [], grid = $('ttGrid'); grid.innerHTML = '';
+  const saved = mres().tt || {};
+  tt.forEach((t, i) => {
+    const l = document.createElement('label');
+    l.innerHTML = `<span>${i + 1}. ${esc(t.q.includes('=') ? t.q : t.q + ' =')}</span><input inputmode="numeric" pattern="[0-9]*" id="tt-${W.id}-${i}" aria-label="answer ${i + 1}" value="${saved.answers?.[i] ?? ''}">`;
+    const inp = l.querySelector('input');
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); grid.querySelectorAll('input')[i + 1]?.focus(); } });
+    grid.appendChild(l);
+  });
+  let ttStart = null, ttTimer = null;
+  const tick = () => { if (ttStart) $('mttTimer').textContent = '⏱ ' + Math.floor((Date.now() - ttStart) / 1000) + ' s'; };
+  grid.addEventListener('focusin', () => { if (!ttStart) { ttStart = Date.now(); ttTimer = setInterval(tick, 1000); } }, { once: true });
+  $('ttVerdict').textContent = saved.score != null ? `Last time: ${saved.score} / ${tt.length}` : '';
+  $('ttCheck').onclick = () => {
+    let ok = 0; const answers = [], wrong = [];
+    grid.querySelectorAll('label').forEach((l, i) => { const v = num(l.querySelector('input').value); answers[i] = l.querySelector('input').value; const good = v === tt[i].a; l.classList.toggle('ok', good); l.classList.toggle('bad', !good); if (good) ok++; else wrong.push(tt[i].q + ' = ' + tt[i].a); });
+    clearInterval(ttTimer); const secs = ttStart ? Math.round((Date.now() - ttStart) / 1000) : null;
+    $('ttVerdict').textContent = `${ok} / ${tt.length}` + (secs ? ` in ${secs} s` : '') + (ok === tt.length ? ' — perfect! 🏆' : ok >= tt.length * .8 ? ' — well done!' : ' — keep practising the red ones.');
+    $('ttVerdict').className = 'verdict ' + (ok >= tt.length * .8 ? 'ok' : 'bad');
+    say(ok === tt.length ? 'Perfect!' : `${ok} out of ${tt.length}.`, 1);
+    const prev = mres().tt || {}; if ((prev.score ?? -1) <= ok) saveM({ tt: { score: ok, n: tt.length, secs, wrong, answers } }); else saveM({ tt: { ...prev, answers } });
+  };
+  $('ttSpeak').onclick = () => say(tt.map((t, i) => `${i + 1}. ${t.q.replace('×', ' times ').replace('÷', ' divided by ').replace('☐', ' what ')}`).join('. '), 0.85);
+  $('ttReset').onclick = () => { grid.querySelectorAll('input').forEach(x => x.value = ''); grid.querySelectorAll('label').forEach(l => l.classList.remove('ok', 'bad')); $('ttVerdict').textContent = ''; ttStart = null; clearInterval(ttTimer); $('mttTimer').textContent = ''; };
+  // --- column sums
+  const sl = $('sumList'); sl.innerHTML = '';
+  const calc = (a, op, b) => op === '+' ? a + b : op === '-' ? a - b : op === '×' || op === '*' || op === 'x' ? a * b : a / b;
+  const symb = op => ({ '*': '×', 'x': '×', '/': '÷' }[op] || op);
+  (M.sums || []).forEach(([a, op0, b], i) => {
+    const op = symb(op0), ans = calc(a, op, b), key = W.id + '-sum' + i, r = (mres().sums || {})[i] || {};
+    const w = Math.max(String(a).length, String(b).length);
+    const c = document.createElement('div'); c.className = 'card';
+    const layout = (op === '+' || op === '-') ? `<div class="colsum"><div>${String(a).padStart(w, ' ').replace(/ /g, '&nbsp;')}</div><div>${op === '-' ? '−' : '+'}${String(b).padStart(w - 1, ' ').replace(/ /g, '&nbsp;')}</div></div>` : `<div class="colsum" style="letter-spacing:.05em"><div style="border:0">${a} ${op} ${b} = ?</div></div>`;
+    c.innerHTML = `<div class="row between" style="align-items:flex-start"><h3>${i + 1}.</h3>${layout}<button class="ghost hear">🔊</button></div>
+      <div class="ink"></div>
+      <div class="row"><span>Answer:</span><input class="num ${r.ok ? 'ok' : r.ok === false ? 'bad' : ''}" inputmode="numeric" value="${r.ans ?? ''}" id="${key}-a"><button class="big chk">Check</button></div>
+      <div class="row inv" ${r.ok ? '' : 'hidden'}><span>Check with the inverse: <b class="invq"></b></span><input class="num" inputmode="numeric" id="${key}-i"><button class="ghost chki">Check</button></div>
+      <p class="verdict v"></p>`;
+    inks[key] = makeInk(c.querySelector('.ink'), key);
+    c.querySelector('.hear').onclick = () => say(`${a} ${{ '+': 'plus', '-': 'minus', '×': 'times', '÷': 'divided by' }[op]} ${b}`, 0.85);
+    const inp = c.querySelector(`#${key}-a`), v = c.querySelector('.v'), inv = c.querySelector('.inv');
+    const invQ = { '+': `${ans} − ${b}`, '-': `${ans} + ${b}`, '×': `${ans} ÷ ${b}`, '÷': `${ans} × ${b}` }[op], invA = a;
+    c.querySelector('.invq').textContent = invQ + ' = ?';
+    c.querySelector('.chk').onclick = () => {
+      const val = num(inp.value); const ok = val != null && Math.abs(val - ans) < 0.001;
+      inp.className = 'num ' + (ok ? 'ok' : 'bad');
+      v.textContent = ok ? '✓ Correct! Now check it with the inverse operation.' : (val == null ? 'Type your answer first.' : 'Not quite. Check your columns and carrying, then try again.');
+      v.className = 'verdict ' + (ok ? 'ok' : 'bad'); inv.hidden = !ok; say(ok ? 'Correct!' : 'Not quite, try again.', 1);
+      const all = mres().sums || {}; all[i] = { ans: inp.value, ok, tries: (all[i]?.tries || 0) + 1 }; saveM({ sums: all });
+    };
+    c.querySelector('.chki').onclick = () => { const val = num(c.querySelector(`#${key}-i`).value); const ok = val === invA; v.textContent = ok ? `✓ ${invQ} = ${invA}. The inverse checks out!` : `Hmm, ${invQ} should give you back ${a}. Try again.`; v.className = 'verdict ' + (ok ? 'ok' : 'bad'); say(ok ? 'The inverse checks out!' : 'Try again.', 1); const all = mres().sums || {}; all[i] = { ...(all[i] || {}), inv: ok }; saveM({ sums: all }); };
+    sl.appendChild(c);
+  });
+  // --- problems
+  const pl = $('probList'); pl.innerHTML = '';
+  (M.problems || []).forEach((pr, i) => {
+    const key = W.id + '-prob' + i, saved = (mres().problems || {})[i] || {};
+    const c = document.createElement('div'); c.className = 'card';
+    c.innerHTML = `<div class="row between" style="align-items:flex-start"><div class="row"><span class="pic" style="font-size:1.8rem">${esc(pr.pic || '🧮')}</span><h3>${i + 1}. ${esc(pr.title)}</h3></div><button class="ghost hear">🔊</button></div>
+      <p style="white-space:pre-line">${esc(pr.text)}</p><div class="ink"></div><div class="parts" style="display:grid;gap:10px"></div>`;
+    const ink = makeInk(c.querySelector('.ink'), key); inks[key] = ink;
+    c.querySelector('.hear').onclick = () => say(pr.title + '. ' + pr.text + ' ' + pr.parts.map(p => p.q).join('. '), 0.88);
+    const parts = c.querySelector('.parts');
+    pr.parts.forEach((pt, j) => {
+      const sv = saved[j] || {}; const d = document.createElement('div');
+      if (pt.type === 'text') {
+        d.innerHTML = `<p><b>${esc(pt.q)}</b></p><details><summary>…or type it</summary><textarea class="answer" id="${key}-${j}" placeholder="Type here if you prefer">${esc(sv.ans || '')}</textarea></details><div class="row"><button class="big grow chk" ${sample ? '' : 'hidden'}>Check my working</button><button class="ghost show">💡 Show a good answer</button></div><div class="feedback" ${sv.fb ? '' : 'hidden'}>${esc(sv.fb || '')}</div><div class="model" hidden></div>`;
+        const ta = d.querySelector('textarea'), fb = d.querySelector('.feedback'), md = d.querySelector('.model');
+        d.querySelector('.show').onclick = () => { md.hidden = false; md.textContent = pt.model || ''; say(pt.model || '', 0.9); };
+        d.querySelector('.chk').onclick = async e => {
+          const typed = ta.value.trim(), useInk = !typed && ink.hasInk();
+          if (!typed && !useInk) { fb.hidden = false; fb.textContent = 'Write your working in the box first.'; return; }
+          e.target.disabled = true; fb.hidden = false; fb.textContent = 'Thinking…';
+          const prompt = `You are a kind UK primary maths teacher (Year 4-5) marking a child's reasoning answer.${useInk ? ' The working is HANDWRITTEN in the attached image: read the numbers carefully.' : ''}
+Reply with ONLY a JSON object: {"transcript":"the child's answer/working as you read it","feedback":"2-4 short sentences a 9-year-old can read: say what is right, then what is missing or wrong and one tip; do not just give the answer; be encouraging","score":1-3}
+Problem: ${pr.text}
+Question: ${pt.q}
+Model answer (do not reveal word for word): ${pt.model || ''}${typed ? '\nChild typed: ' + typed : ''}`;
+          try {
+            const opts = { modelTier: useInk ? 'default' : 'quick', cache: false };
+            if (useInk) opts.images = await new Promise(r => ink.toImage().toBlob(r, 'image/png'));
+            const r = await sample.json(prompt, opts); const fbt = String(r.feedback || '');
+            fb.innerHTML = (useInk && r.transcript ? `<span class="muted">I read: “${esc(r.transcript)}”</span>\n\n` : '') + esc(fbt); say(fbt, 0.95);
+            const all = mres().problems || {}; all[i] = { ...(all[i] || {}), [j]: { ans: typed || String(r.transcript || ''), fb: fbt, score: Number(r.score) || 0 } }; saveM({ problems: all });
+          } catch (err) { fb.textContent = err.code === 'rate_limited' ? 'Too many checks right now. Try again in a minute.' : 'Checking is not available right now. Press “Show a good answer” and compare.'; }
+          finally { e.target.disabled = false; }
+        };
+      } else if (pt.type === 'exact') {
+        d.innerHTML = `<div class="row"><span style="flex:1 1 200px"><b>${esc(pt.q)}</b>${pt.hint ? `<br><span class="muted" style="font-size:.9rem">${esc(pt.hint)}</span>` : ''}</span><input class="num ${sv.ok ? 'ok' : sv.ok === false ? 'bad' : ''}" style="width:180px" value="${esc(sv.ans ?? '')}" id="${key}-${j}"><button class="big chk">Check</button></div><p class="verdict v"></p>`;
+        const inp = d.querySelector('input'), v = d.querySelector('.v');
+        const normE = x => String(x).toLowerCase().replace(/\s+/g, '').replace(/,/g, '');
+        d.querySelector('.chk').onclick = () => {
+          const accepted = [].concat(pt.answer).map(normE); const ok = accepted.includes(normE(inp.value));
+          inp.className = 'num ' + (ok ? 'ok' : 'bad'); v.textContent = ok ? '✓ Correct!' : 'Not quite. Try again.'; v.className = 'verdict ' + (ok ? 'ok' : 'bad'); say(ok ? 'Correct!' : 'Not quite, try again.', 1);
+          const all = mres().problems || {}; all[i] = { ...(all[i] || {}), [j]: { ans: inp.value, ok, tries: ((all[i] || {})[j]?.tries || 0) + 1 } }; saveM({ problems: all });
+        };
+      } else {
+        d.innerHTML = `<div class="row"><span style="flex:1 1 200px"><b>${esc(pt.q)}</b>${pt.hint ? `<br><span class="muted" style="font-size:.9rem">${esc(pt.hint)}</span>` : ''}</span><input class="num ${sv.ok ? 'ok' : sv.ok === false ? 'bad' : ''}" inputmode="numeric" value="${sv.ans ?? ''}" id="${key}-${j}"><button class="big chk">Check</button></div><p class="verdict v"></p>`;
+        const inp = d.querySelector('input'), v = d.querySelector('.v');
+        d.querySelector('.chk').onclick = () => {
+          const val = num(inp.value); let ok;
+          if (pt.type === 'estimate') ok = val != null && Math.abs(val - pt.answer) <= Math.max(150, pt.answer * 0.06) && val % 10 === 0;
+          else ok = val != null && Math.abs(val - pt.answer) < 0.001;
+          inp.className = 'num ' + (ok ? 'ok' : 'bad');
+          v.textContent = ok ? (pt.type === 'estimate' ? '✓ Good estimate!' : '✓ Correct!') : val == null ? 'Type a number first.' : (pt.type === 'estimate' ? 'Hmm — round each number first, then add or subtract the rounded numbers.' : 'Not quite. Read the question again and check your working.');
+          v.className = 'verdict ' + (ok ? 'ok' : 'bad'); say(ok ? 'Correct!' : 'Not quite, try again.', 1);
+          const all = mres().problems || {}; all[i] = { ...(all[i] || {}), [j]: { ans: inp.value, ok, tries: ((all[i] || {})[j]?.tries || 0) + 1 } }; saveM({ problems: all });
+        };
+      }
+      parts.appendChild(d);
+    });
+    pl.appendChild(c);
+  });
+}
+function mathsSummary() {
+  const M = W.maths, m = mres(); if (!M) return [];
+  const out = [];
+  out.push(`Times tables (${(M.timesTables || []).length} questions): ${m.tt?.score != null ? `${m.tt.score} / ${m.tt.n}${m.tt.secs ? ' in ' + m.tt.secs + ' s' : ''}` : 'not done yet'}`);
+  const sums = Object.values(m.sums || {}); out.push(`Column sums: ${sums.filter(x => x.ok).length} / ${(M.sums || []).length} correct (${sums.filter(x => x.inv).length} checked with the inverse)`);
+  let pn = 0, pok = 0; (M.problems || []).forEach((pr, i) => pr.parts.forEach((pt, j) => { if (pt.type !== 'text') { pn++; if ((m.problems?.[i] || {})[j]?.ok) pok++; } }));
+  out.push(`Problem answers: ${pok} / ${pn} correct`);
+  return out;
+}
+
+// ===================== REPORT PDF =====================
+let downloads = null, assets = null, noteText = '';
+$('childName').addEventListener('change', e => { try { localStorage.setItem('spag-name', e.target.value); } catch (err) {} });
+function summary() {
+  const r = results(); const lines = [];
+  lines.push(`Spelling test (${W.words.length} words): ${r.spellBest != null ? r.spellBest + ' / ' + W.words.length : 'not taken yet'}`);
+  lines.push(`Reading quiz: ${r.quizBest ? r.quizBest.score + ' / ' + r.quizBest.n : 'not taken yet'}`);
+  const rc = r.reading || {}; const keys = Object.keys(rc);
+  lines.push(`Reading aloud (dictation check): ${keys.length ? keys.map(k => `${(W.reading.passages[k] || {}).title}: ${rc[k]}%`).join('; ') : 'not done yet'}`);
+  mathsSummary().forEach(l => lines.push('Maths — ' + l));
+  return { r, lines };
+}
+$('teacherNote').onclick = async () => {
+  if (!sample) return; const box = $('noteBox'); box.hidden = false; box.textContent = 'Thinking…'; $('teacherNote').disabled = true;
+  const { r, lines } = summary();
+  const answers = (W.open || []).map((t, i) => `Q${i + 1}: ${t.q}\nAnswer: ${(r.answers || {})[i] || '(no answer)'}\nFeedback given: ${((r.feedback || {})[i] || {}).feedback || '-'}`).join('\n\n');
+  const prompt = `You are a UK primary teacher writing a short, warm progress note (4-6 sentences, plain prose, no headings, no bullet points) for a parent and class teacher about a child's weekly SPAG homework practice. Name 1-2 strengths and 1-2 specific next steps (e.g. particular spelling words or a comprehension skill such as using evidence). Do not invent results that are not listed.
+Child: ${$('childName').value || 'the child'}. Week: ${W.title}. Spelling pattern: ${W.pattern?.title || ''}. Words: ${W.words.join(', ')}.
+Results:\n${lines.join('\n')}\nTimes-table mistakes: ${(mres().tt?.wrong || []).join(', ') || 'none recorded'}\nSpelling test mistakes: ${(r.spellWrong || []).join(', ') || 'none recorded'}\nTricky words when reading aloud: ${(r.readingMissed || []).join(', ') || 'none recorded'}\n\nComprehension answers:\n${answers}`;
+  try { const res = await sample(prompt, { modelTier: 'quick', cache: false }); noteText = res.text; box.textContent = noteText; }
+  catch (e) { box.textContent = 'Could not write the note right now.'; }
+  finally { $('teacherNote').disabled = false; }
+};
+function newDoc() {
+  const { jsPDF } = window.jspdf; const doc = new jsPDF({ unit: 'mm', format: 'a4' }); let y = 18; const L = 15, Wd = 180;
+  const h = (txt, size = 11, bold = false) => { doc.setFont('helvetica', bold ? 'bold' : 'normal'); doc.setFontSize(size); const ls = doc.splitTextToSize(txt, Wd); if (y + ls.length * size * 0.45 > 285) { doc.addPage(); y = 18; } doc.text(ls, L, y); y += ls.length * size * 0.45 + 2; };
+  const img = (ink, frac = 1) => { if (!ink?.hasInk()) return false; const im = ink.toImage(); const hmm = Wd * frac * im.height / im.width; if (y + hmm > 285) { doc.addPage(); y = 18; } doc.addImage(im.toDataURL('image/jpeg', 0.85), 'JPEG', L, y, Wd * frac, hmm); y += hmm + 2; return true; };
+  const gap = n => { y += n; };
+  return { doc, h, img, gap };
+}
+function buildSpagPdf(name) {
+  const { doc, h, img, gap } = newDoc(); const { r } = summary();
+  const lines = [`Spelling test (${W.words.length} words): ${r.spellBest != null ? r.spellBest + ' / ' + W.words.length : 'not taken yet'}`, `Reading quiz: ${r.quizBest ? r.quizBest.score + ' / ' + r.quizBest.n : 'not taken yet'}`];
+  const rc = r.reading || {}; const keys = Object.keys(rc); lines.push(`Reading aloud: ${keys.length ? keys.map(k => `${(W.reading.passages[k] || {}).title}: ${rc[k]}%`).join('; ') : 'not done yet'}`);
+  h(`SPAG homework — ${W.title}`, 18, true); h(`${name ? name + ' · ' : ''}${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`, 11); gap(2);
+  h('Results', 13, true); lines.forEach(l => h('• ' + l));
+  if ((r.spellWrong || []).length) h('• Spelling words to practise: ' + r.spellWrong.join(', '));
+  if ((r.readingMissed || []).length) h('• Tricky words when reading aloud: ' + r.readingMissed.slice(0, 20).join(', '));
+  gap(2); h(`Spelling list (${W.pattern?.title || ''}): ${W.words.join(', ')}`, 10); gap(3);
+  h(`Reading comprehension — ${W.reading?.title || ''}`, 13, true);
+  (W.open || []).forEach((t, i) => {
+    h(`${i + 1}. ${t.q}`, 11, true); const typed = (r.answers || {})[i];
+    if (img(inks[W.id + '-' + i])) { if (typed) h('Read as: ' + typed, 9); } else h(typed || '(no answer)', 11);
+    const fbk = ((r.feedback || {})[i] || {}).feedback; if (fbk) h('Feedback: ' + fbk, 9); gap(2);
+  });
+  if (noteText) { gap(2); h('Note', 13, true); h(noteText, 11); }
+  gap(4); h('Message for the teacher (copy and paste):', 10, true); h(`Dear Ms Christodoulou, please find attached ${name || 'my child'}'s completed SPAG homework for ${W.title} (spelling practice and reading comprehension). Kind regards`, 9);
+  return { blob: doc.output('blob'), fname: `SPAG ${W.title}${name ? ' - ' + name : ''}.pdf`, lines, subject: 'SPAG' };
+}
+function buildMathsPdf(name) {
+  const { doc, h, img, gap } = newDoc(); const M = W.maths, m = mres(); const lines = mathsSummary();
+  h(`Maths homework — ${M.title || W.title}`, 18, true); h(`${name ? name + ' · ' : ''}${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`, 11); gap(2);
+  h('Results', 13, true); lines.forEach(l => h('• ' + l));
+  if (m.tt?.wrong?.length) h('• Times tables to practise: ' + m.tt.wrong.join('; '), 9);
+  if ((M.timesTables || []).length && m.tt?.answers) { gap(2); h('Times tables', 13, true); h(M.timesTables.map((t, i) => `${i + 1}. ${t.q.includes('=') ? t.q.replace('☐', '[' + (m.tt.answers[i] || '…') + ']') : t.q + ' = ' + (m.tt.answers[i] || '…')}`).join('    '), 9); }
+  if ((M.sums || []).length) { gap(2); h('Written calculations', 13, true);
+    M.sums.forEach(([a, op, b], i) => { const r = (m.sums || {})[i]; h(`${i + 1}. ${a} ${op} ${b} = ${r?.ans || '…'} ${r ? (r.ok ? '✓' : '✗') : ''}${r?.inv ? ' (inverse checked)' : ''}`, 10); img(inks[W.id + '-sum' + i], 0.6); }); }
+  if ((M.problems || []).length) { gap(2); h('Problem solving and reasoning', 13, true);
+    M.problems.forEach((pr, i) => { h(`${i + 1}. ${pr.title}`, 11, true); h(pr.text, 9); img(inks[W.id + '-prob' + i]);
+      pr.parts.forEach((pt, j) => { const sv = ((m.problems || {})[i] || {})[j] || {}; h(`${pt.q}: ${sv.ans || '(no answer)'}${pt.type !== 'text' ? (sv.ok ? ' ✓' : sv.ans ? ' ✗' : '') : ''}`, 10); if (sv.fb) h('Feedback: ' + sv.fb, 9); }); gap(2); }); }
+  gap(4); h('Message for the teacher (copy and paste):', 10, true); h(`Dear Ms Christodoulou, please find attached ${name || 'my child'}'s completed maths homework for ${W.title}. Kind regards`, 9);
+  return { blob: doc.output('blob'), fname: `Maths ${W.title}${name ? ' - ' + name : ''}.pdf`, lines, subject: 'Maths' };
+}
+let lastPdfs = [];
+$('makePdf').onclick = () => {
+  const st = $('pdfStatus'); st.textContent = 'Building the PDFs…';
+  try {
+    const name = $('childName').value || ''; lastPdfs = [buildSpagPdf(name)]; if (W.maths) lastPdfs.push(buildMathsPdf(name));
+    $('pdfActions').hidden = false; st.textContent = lastPdfs.length === 2 ? 'Two PDFs are ready: SPAG and Maths.' : 'PDF is ready.';
+  } catch (e) { st.textContent = 'Could not make the PDF: ' + (e.message || e.code || ''); }
+};
+$('pdfSave').onclick = () => {
+  const st = $('pdfStatus'); if (!lastPdfs.length) return;
+  lastPdfs.forEach(p => { const a = document.createElement('a'); a.href = URL.createObjectURL(p.blob); a.download = p.fname; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000); });
+  st.textContent = 'Saved to Downloads (Files app).';
+};
+$('pdfSend').onclick = async () => {
+  const st = $('pdfStatus'); if (!lastPdfs.length) return;
+  const files = lastPdfs.map(p => new File([p.blob], p.fname, { type: 'application/pdf' }));
+  if (navigator.canShare && navigator.canShare({ files })) {
+    try { await navigator.share({ files, title: `Homework ${W.title}`, text: `${$('childName').value || ''} homework ${W.title}: ${lastPdfs.map(p => p.subject).join(' + ')}` }); st.textContent = '✓ Sent!'; say('Sent!', 1); }
+    catch (e) { if (e.name !== 'AbortError') st.textContent = 'Could not share. Use “Save” and share from Files.'; }
+  } else { st.textContent = 'Sharing is not available in this browser. Use “Save” and share from Files.'; }
+};
+
+// ===================== BOOT =====================
+try { if (localStorage.getItem('spag-voicetip')) $('voiceTip').hidden = true; } catch (e) {}
+renderWeek();
+(async () => {
+  try {
+    const r = await fetch('weeks.json?v=' + Date.now(), { cache: 'no-store' });
+    if (r.ok) { const arr = await r.json(); if (Array.isArray(arr) && arr.length) { weeks = arr.sort((a, b) => (a.order || 0) - (b.order || 0)); W = weeks[weeks.length - 1]; renderWeek(); } }
+  } catch (e) {}
+})();
+</script>
+</body>
+</html>
