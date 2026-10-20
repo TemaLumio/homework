@@ -192,10 +192,18 @@
     <div id="facts" style="display:grid;gap:12px">
       <div class="card">
         <h2 id="readTitle"></h2>
-        <p class="tip">The text is retold here in simple words. Press ▶ to hear the whole thing read aloud; the part being read lights up. Follow along with the sheet.</p>
-        <div class="row"><button class="big grow" id="readAll">▶ Read the whole text to me</button><button class="ghost" id="readStop">⏹ Stop</button></div>
       </div>
-      <div id="factList" style="display:grid;gap:12px"></div>
+      <div class="card" id="sheetRCard">
+        <div class="row between"><h3>📄 Original sheet</h3><div class="row"><label class="ghost" style="cursor:pointer;padding:10px 14px;font:700 .95rem var(--body);border:2px solid var(--line);border-radius:12px">📎 Attach the sheet<input type="file" id="sheetRFile" accept="application/pdf,image/*" multiple hidden></label><button class="ghost" id="sheetRClear" hidden>Remove</button></div></div>
+        <p class="tip" id="sheetRTip">Attach the PDF from ManageBac (from the Files app) and the pages appear here. It stays on this iPad only.</p>
+        <div id="sheetRPages" style="display:grid;gap:10px"></div>
+      </div>
+      <details class="card" id="simpleCard">
+        <summary>🗣 Simple version with read-aloud (tap to open)</summary>
+        <p class="tip">The text retold in simple words. Press ▶ to hear it; the part being read lights up.</p>
+        <div class="row"><button class="big grow" id="readAll">▶ Read the whole text to me</button><button class="ghost" id="readStop">⏹ Stop</button></div>
+        <div id="factList" style="display:grid;gap:12px;margin-top:12px"></div>
+      </details>
       <div class="card" id="glossCard"><h3>Glossary — tap a word to see what it means</h3><div class="gloss" id="glossList"></div></div>
     </div>
     <div id="quiz" class="card" hidden>
@@ -219,13 +227,20 @@
       <button class="sub" role="tab" aria-selected="false" data-sub="msums">2 · Column sums</button>
       <button class="sub" role="tab" aria-selected="false" data-sub="mprob">3 · Problems</button>
     </div>
-    <div id="mtt" class="card">
+    <div id="mtt" style="display:grid;gap:12px">
+      <div class="card" id="sheetMCard">
+        <div class="row between"><h3>📄 Original sheet</h3><div class="row"><label class="ghost" style="cursor:pointer;padding:10px 14px;font:700 .95rem var(--body);border:2px solid var(--line);border-radius:12px">📎 Attach the sheet<input type="file" id="sheetMFile" accept="application/pdf,image/*" multiple hidden></label><button class="ghost" id="sheetMClear" hidden>Remove</button></div></div>
+        <p class="tip" id="sheetMTip">Attach the PDF from ManageBac (from the Files app) and the pages appear here. It stays on this iPad only.</p>
+        <div id="sheetMPages" style="display:grid;gap:10px"></div>
+      </div>
+    <div class="card">
       <h2 id="mttTitle">Times tables — Friday test</h2>
       <p class="tip" id="mathsIntro"></p>
       <div class="row between"><span class="muted">Type the missing number. ☐ means “what number goes here?”</span><span class="muted" id="mttTimer"></span></div>
       <div class="tt" id="ttGrid"></div>
       <div class="row"><button class="big grow" id="ttCheck">Check all ✓</button><button class="ghost" id="ttSpeak">🔊 Read them to me</button><button class="ghost" id="ttReset">Start again</button></div>
       <p class="verdict" id="ttVerdict"></p>
+    </div>
     </div>
     <div id="msums" style="display:grid;gap:12px" hidden>
       <div class="card"><h2>Column addition and subtraction</h2><p class="tip">Work it out with your pencil in the box, type the answer, then check it with the inverse operation (the opposite sum) like on your sheet.</p></div>
@@ -264,6 +279,7 @@
 
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 // ===================== DEFAULT WEEK (used when the store is empty or unavailable) =====================
@@ -395,6 +411,41 @@ document.querySelectorAll('.subtabs').forEach(group => group.querySelectorAll('.
   group.querySelectorAll('.sub').forEach(x => { x.setAttribute('aria-selected', x === b); $(x.dataset.sub).hidden = x !== b; }); stopSpeech();
 }));
 
+
+// ===================== ORIGINAL SHEET (kept on this device only) =====================
+const idb = {
+  open: () => new Promise((res, rej) => { const q = indexedDB.open('spag-sheets', 1); q.onupgradeneeded = () => q.result.createObjectStore('sheets'); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); }),
+  get: async k => { try { const d = await idb.open(); return await new Promise((res, rej) => { const r = d.transaction('sheets').objectStore('sheets').get(k); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); } catch (e) { return null; } },
+  set: async (k, v) => { try { const d = await idb.open(); await new Promise((res, rej) => { const t = d.transaction('sheets', 'readwrite'); t.objectStore('sheets').put(v, k); t.oncomplete = res; t.onerror = () => rej(t.error); }); return true; } catch (e) { return false; } },
+  del: async k => { try { const d = await idb.open(); await new Promise((res, rej) => { const t = d.transaction('sheets', 'readwrite'); t.objectStore('sheets').delete(k); t.oncomplete = res; t.onerror = () => rej(t.error); }); } catch (e) {} }
+};
+async function sheetPagesFromFiles(files) {
+  const out = [];
+  for (const f of files) {
+    if (f.type === 'application/pdf') {
+      const lib = window.pdfjsLib || window['pdfjs-dist/build/pdf']; if (!lib) throw new Error('PDF reader did not load. Take photos of the pages instead.');
+      lib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      const pdf = await lib.getDocument({ data: await f.arrayBuffer() }).promise;
+      for (let n = 1; n <= Math.min(pdf.numPages, 12); n++) { const page = await pdf.getPage(n); const vp = page.getViewport({ scale: 2 }); const cv = document.createElement('canvas'); cv.width = vp.width; cv.height = vp.height; await page.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise; out.push(cv.toDataURL('image/jpeg', 0.85)); }
+    } else if (f.type.startsWith('image/')) {
+      out.push(await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(f); }));
+    }
+  }
+  return out;
+}
+function setupSheet(subj) {
+  const key = () => `sheet-${W.id}-${subj}`, pages = $(`sheet${subj}Pages`), tip = $(`sheet${subj}Tip`), clr = $(`sheet${subj}Clear`), inp = $(`sheet${subj}File`);
+  async function render() {
+    const arr = await idb.get(key()); pages.innerHTML = '';
+    if (arr && arr.length) { arr.forEach((src, i) => { const im = document.createElement('img'); im.src = src; im.alt = `Sheet page ${i + 1}`; im.style.cssText = 'width:100%;border:2px solid var(--line);border-radius:12px;background:#fff'; pages.appendChild(im); }); tip.hidden = true; clr.hidden = false; }
+    else { tip.hidden = false; clr.hidden = true; }
+  }
+  inp.onchange = async () => { const files = [...inp.files]; if (!files.length) return; tip.hidden = false; tip.textContent = 'Preparing the pages…'; try { const arr = await sheetPagesFromFiles(files); if (!arr.length) throw new Error('No pages found'); if (!(await idb.set(key(), arr))) throw new Error('Could not save on this device'); } catch (e) { tip.textContent = (e.message || 'Could not read the file') + ' Try photos of the pages.'; inp.value = ''; return; } inp.value = ''; tip.textContent = 'Attach the PDF from ManageBac (from the Files app) and the pages appear here. It stays on this iPad only.'; render(); };
+  clr.onclick = async () => { await idb.del(key()); render(); };
+  return render;
+}
+const renderSheetR = setupSheet('R'), renderSheetM = setupSheet('M');
+
 // ===================== RENDER WEEK =====================
 function renderWeeks() {
   const box = $('weekChips'); box.innerHTML = '';
@@ -459,7 +510,7 @@ function renderWeek() {
     b.onclick = () => { if (!b.querySelector('span')) { const s = document.createElement('span'); s.textContent = d; b.appendChild(s); say(w + '. ' + d); } else b.querySelector('span').remove(); };
     gl.appendChild(b);
   });
-  quizStart(); renderThink(); renderMaths();
+  quizStart(); renderThink(); renderMaths(); renderSheetR(); renderSheetM();
 }
 function commonSuffix(words) {
   if (!words?.length) return '';
