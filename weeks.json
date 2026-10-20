@@ -100,70 +100,79 @@
   },
   "quiz": [
    {
-    "q": "How long does a wood frog stay frozen each year?",
+    "q": "1. How long does a wood frog freeze for each year? Tick one.",
     "a": [
-     "Up to 8 months",
-     "4 months",
+     "8 months",
+     "7 months",
      "6 months",
-     "7 months"
+     "4 months"
     ]
    },
    {
-    "q": "The fossils of a T. rex…",
+    "q": "2. Complete the sentence: The fossils of a T. rex…",
     "a": [
-     "contain substances identical to those in a chicken",
-     "were found with an age of 512 years",
-     "have fingerprints like a human's",
-     "enter a frozen state every winter"
+     "contain substances which are identical to those found in the chicken.",
+     "was found with an estimated age of up to 512 years.",
+     "has fingerprints that are almost identical to those of human beings.",
+     "enters a frozen state every winter."
     ]
    },
    {
-    "q": "The koala…",
+    "q": "2. Complete the sentence: The wood frog…",
     "a": [
-     "has fingerprints almost identical to a human's",
-     "freezes solid every winter",
-     "gives birth to quadruplets",
-     "can grow a new leg"
+     "enters a frozen state every winter.",
+     "was found with an estimated age of up to 512 years.",
+     "contain substances which are identical to those found in the chicken.",
+     "has fingerprints that are almost identical to those of human beings."
     ]
    },
    {
-    "q": "A Greenland shark…",
+    "q": "2. Complete the sentence: The koala…",
     "a": [
-     "was found with an estimated age of up to 512 years",
-     "lives in the Pacific Ocean",
-     "can think mathematically",
-     "is a type of amphibian"
+     "has fingerprints that are almost identical to those of human beings.",
+     "enters a frozen state every winter.",
+     "was found with an estimated age of up to 512 years.",
+     "contain substances which are identical to those found in the chicken."
     ]
    },
    {
-    "q": "The nine-banded armadillo always has how many babies?",
+    "q": "2. Complete the sentence: A Greenland shark…",
     "a": [
-     "Four identical quadruplets",
-     "Two twins",
-     "One baby",
-     "Nine babies"
+     "was found with an estimated age of up to 512 years.",
+     "has fingerprints that are almost identical to those of human beings.",
+     "contain substances which are identical to those found in the chicken.",
+     "enters a frozen state every winter."
     ]
    },
    {
-    "q": "Which animal is the only vertebrate to always have identical quadruplets?",
+    "q": "3. Fill in the missing word: The nine-banded ______ from North America is the only vertebrate to consistently give birth to four identical quadruplets.",
     "a": [
-     "Nine-banded armadillo",
-     "Koala",
-     "Axolotl",
-     "Greenland shark"
+     "armadillo",
+     "koala",
+     "salamander",
+     "pigeon"
     ]
    },
    {
-    "q": "In 'Winged Mathematicians', which word means 'a particular order in which things follow each other'?",
+    "q": "3. Fill in the missing word: …is the only vertebrate to consistently give birth to four identical ______.",
     "a": [
-     "Sequence",
-     "Reward",
-     "Objects",
-     "Research"
+     "quadruplets",
+     "twins",
+     "triplets",
+     "babies"
     ]
    },
    {
-    "q": "What percentage of the hunting do female lions do?",
+    "q": "4. Look at the section called Winged Mathematicians. Find the word which means ‘a particular order in which related things follow each other’.",
+    "a": [
+     "sequence",
+     "reward",
+     "research",
+     "objects"
+    ]
+   },
+   {
+    "q": "5. What percentage of hunting is carried out by female lions?",
     "a": [
      "90 per cent",
      "50 per cent",
@@ -172,7 +181,16 @@
     ]
    },
    {
-    "q": "Which animal can grow a replacement limb?",
+    "q": "Bonus: Which animal is the closest living relative of the T. rex?",
+    "a": [
+     "The chicken",
+     "The koala",
+     "The crocodile",
+     "The pigeon"
+    ]
+   },
+   {
+    "q": "Bonus: Which animal can grow a replacement limb?",
     "a": [
      "Axolotl",
      "Pigeon",
@@ -181,53 +199,35 @@
     ]
    },
    {
-    "q": "Who owns all the swans in England and Wales?",
+    "q": "Bonus: Who owns all of the swans in England and Wales?",
     "a": [
-     "The King",
+     "His Majesty the King",
      "The Prime Minister",
      "Nobody",
      "The zoo"
-    ]
-   },
-   {
-    "q": "Why is the shark's age described as 'estimated'?",
-    "a": [
-     "Nobody knows exactly how old it was; it's a careful guess",
-     "Because sharks can't count",
-     "Because it was exactly 512",
-     "Because it was born in 2007"
-    ]
-   },
-   {
-    "q": "Which animal is the closest living relative of T. rex?",
-    "a": [
-     "The chicken",
-     "The koala",
-     "The crocodile",
-     "The pigeon"
     ]
    }
   ],
   "open": [
    {
-    "q": "A Greenland shark was found with an estimated age of up to 512 years. Why is the age called 'estimated'?",
-    "starters": "I think the age is estimated because… / Scientists can't know exactly because…",
+    "q": "6. …a Greenland shark was found with an estimated age of up to 512 years. Explain why you think that the shark’s age is described as ‘estimated’.",
+    "starters": "I think the age is described as ‘estimated’ because… / Scientists cannot know exactly because…",
     "model": "The age is estimated because scientists cannot know exactly how old the shark was. They worked it out roughly from clues, so it is a careful guess, not an exact number."
    },
    {
-    "q": "The text begins: 'Is it possible for something to still be alive since before the time of Henry VIII?' Why did the author start with a question?",
-    "starters": "The author uses a question to make the reader… / It makes you want to…",
+    "q": "7. Is it possible for something to still be alive since before the time of Henry VIII? Why do you think that the author has included this sentence in the text?",
+    "starters": "The author has included this question to make the reader… / It makes you want to…",
     "model": "The author starts with a question to make the reader curious and want to read on. It makes you think about the answer and makes the fact about the very old shark more surprising."
    },
    {
-    "q": "Which creature did you find the most interesting? Why?",
-    "starters": "The most interesting creature was the … because… / I was surprised that…",
+    "q": "8. Which creature from the text did you find the most interesting? Give a reason for your answer.",
+    "starters": "The creature I found the most interesting was the … because… / I was surprised that…",
     "model": "Any animal is a good answer if you give a reason from the text. For example: I found the axolotl most interesting because it can grow a new leg if it loses one, and even grow an extra one."
    },
    {
-    "q": "Give one piece of evidence from the text that chickens are linked to dinosaurs.",
+    "q": "9. Give one piece of evidence from the text which suggests that chickens are linked to dinosaurs.",
     "starters": "The text says that scientists found… / One piece of evidence is…",
-    "model": "The text says that scientists found substances in T. rex fossils that are identical to substances found in chickens. This shows chickens and dinosaurs are linked."
+    "model": "The text says that scientists found that the fossils of a Tyrannosaurus rex contained substances which are identical to those found in the chicken. This shows chickens are linked to dinosaurs."
    }
   ],
   "maths": {
