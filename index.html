@@ -626,6 +626,7 @@ function quizRender() {
     b.onclick = () => {
       if (box.dataset.done) return; box.dataset.done = 1;
       box.querySelectorAll('.opt').forEach(x => { if (x.textContent === correct) x.classList.add('ok'); });
+      { const qa = results().quizAnswers || {}; qa[W.quiz.indexOf(item)] = { chosen: o, ok: o === correct }; saveResults({ quizAnswers: qa }); }
       const v = $('qVerdict');
       if (o === correct) { quizScore++; v.textContent = '✓ Correct!'; v.className = 'verdict ok'; say('Correct!', 1); }
       else { b.classList.add('bad'); v.textContent = 'The answer is: ' + correct; v.className = 'verdict bad'; say('Not quite. The answer is ' + correct, 0.9); }
@@ -892,17 +893,18 @@ function newDoc() {
 }
 function buildSpagPdf(name) {
   const { doc, h, img, gap } = newDoc(); const { r } = summary();
-  const lines = [`Spelling test (${W.words.length} words): ${r.spellBest != null ? r.spellBest + ' / ' + W.words.length : 'not taken yet'}`, `Reading quiz: ${r.quizBest ? r.quizBest.score + ' / ' + r.quizBest.n : 'not taken yet'}`];
-  const rc = r.reading || {}; const keys = Object.keys(rc); lines.push(`Reading aloud: ${keys.length ? keys.map(k => `${(W.reading.passages[k] || {}).title}: ${rc[k]}%`).join('; ') : 'not done yet'}`);
+  const sheetQ = (W.quiz || []).map((q, i) => ({ q, i })).filter(x => !/^bonus:/i.test(x.q.q));
+  const qa = r.quizAnswers || {}; const answered = sheetQ.filter(x => qa[x.i]); const qok = answered.filter(x => qa[x.i].ok).length;
+  const lines = [`Spelling test (${W.words.length} words): ${r.spellBest != null ? r.spellBest + ' / ' + W.words.length : 'not taken yet'}`, `Reading questions ${sheetQ.length ? '1–' + sheetQ.length : ''}: ${answered.length ? qok + ' / ' + sheetQ.length + ' correct' : 'not answered yet'}`];
   h(`SPAG homework — ${W.title}`, 18, true); h(`${name ? name + ' · ' : ''}${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`, 11); gap(2);
   h('Results', 13, true); lines.forEach(l => h('• ' + l));
   if ((r.spellWrong || []).length) h('• Spelling words to practise: ' + r.spellWrong.join(', '));
-  if ((r.readingMissed || []).length) h('• Tricky words when reading aloud: ' + r.readingMissed.slice(0, 20).join(', '));
   gap(2); h(`Spelling list (${W.pattern?.title || ''}): ${W.words.join(', ')}`, 10); gap(3);
   h(`Reading comprehension — ${W.reading?.title || ''}`, 13, true);
+  if (sheetQ.length) { h('Answers to the questions', 11, true); sheetQ.forEach(({ q, i }) => { const a = qa[i]; h(`${q.q}`, 10); h(`   Answer: ${a ? a.chosen + (a.ok ? '  ✓' : '  ✗') : '(not answered)'}`, 10); }); gap(2); }
   (W.open || []).forEach((t, i) => {
     h(`${/^\d+\./.test(t.q) ? '' : (i + 1) + '. '}${t.q}`, 11, true); const typed = (r.answers || {})[i];
-    if (img(inks[W.id + '-' + i])) { if (typed) h('Read as: ' + typed, 9); } else h(typed || '(no answer)', 11);
+    if (img(inks[W.id + '-' + i])) { if (typed) h('Typed: ' + typed, 10); } else h(typed || '(no answer)', 11);
     const fbk = ((r.feedback || {})[i] || {}).feedback; if (fbk) h('Feedback: ' + fbk, 9); gap(2);
   });
   if (noteText) { gap(2); h('Note', 13, true); h(noteText, 11); }
