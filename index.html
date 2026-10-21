@@ -186,8 +186,7 @@
   <section id="read" hidden>
     <div class="subtabs" role="tablist">
       <button class="sub" role="tab" aria-selected="true" data-sub="facts">1 · Read the text</button>
-      <button class="sub" role="tab" aria-selected="false" data-sub="quiz">2 · Quiz</button>
-      <button class="sub" role="tab" aria-selected="false" data-sub="think">3 · My answers</button>
+      <button class="sub" role="tab" aria-selected="false" data-sub="think">2 · Questions</button>
     </div>
     <div id="facts" style="display:grid;gap:12px">
       <div class="card">
@@ -201,16 +200,14 @@
       <div id="factList" hidden></div>
       <div class="card" id="glossCard"><h3>Glossary — tap a word to see what it means</h3><div class="gloss" id="glossList"></div></div>
     </div>
-    <div id="quiz" class="card" hidden>
-      <div class="row between"><h2>Quiz</h2><span class="muted" id="quizCount"></span></div>
-      <div class="progress"><i id="quizBar"></i></div>
-      <div id="quizBody" style="display:grid;gap:12px"></div>
-    </div>
+    <div id="quiz" hidden><div id="quizBody" hidden></div><span id="quizCount" hidden></span><i id="quizBar" hidden></i></div>
     <div id="think" style="display:grid;gap:12px" hidden>
+      <div data-sheetpages="R:questions" style="display:grid;gap:10px"></div>
       <div class="card">
-        <h2>Answer in your own words</h2>
-        <p class="tip">Questions 6–9 from your sheet. Read the text first, then <b>write your answer with the Apple Pencil</b> in the box, or type it. </p>
+        <h2>Questions</h2>
+        <p class="tip">The questions from your sheet, in order. Tap an answer for the multiple-choice ones; for the writing ones, <b>write with the Apple Pencil</b> in the box or type.<span id="thinkHint" hidden></span></p>
       </div>
+      <div id="mcList" style="display:grid;gap:12px"></div>
       <div id="thinkList" style="display:grid;gap:12px"></div>
     </div>
   </section>
@@ -228,6 +225,7 @@
         <p class="tip" id="sheetMTip">Attach the PDF from ManageBac (from the Files app) and the pages appear here. It stays on this iPad only.</p>
         <div id="sheetMPages" style="display:grid;gap:10px"></div>
       </div>
+    <div data-sheetpages="M:tt" style="display:grid;gap:10px"></div>
     <div class="card">
       <h2 id="mttTitle">Times tables — Friday test</h2>
       <p class="tip" id="mathsIntro"></p>
@@ -238,10 +236,12 @@
     </div>
     </div>
     <div id="msums" style="display:grid;gap:12px" hidden>
+      <div data-sheetpages="M:sums" style="display:grid;gap:10px"></div>
       <div class="card"><h2>Column addition and subtraction</h2><p class="tip">Work it out with your pencil in the box, type the answer, then check it with the inverse operation (the opposite sum) like on your sheet.</p></div>
       <div id="sumList" style="display:grid;gap:12px"></div>
     </div>
     <div id="mprob" style="display:grid;gap:12px" hidden>
+      <div data-sheetpages="M:problems" style="display:grid;gap:10px"></div>
       <div class="card"><h2>Problem solving and reasoning</h2><p class="tip">Read the problem (or press 🔊). Do your working with the pencil, then type each answer. </p></div>
       <div id="probList" style="display:grid;gap:12px"></div>
     </div>
@@ -318,6 +318,7 @@ const DEFAULT_WEEK = {
     {"q": "8. Which creature from the text did you find the most interesting? Give a reason for your answer.", "starters": "The creature I found the most interesting was the … because… / I was surprised that…", "model": "Any animal is a good answer if you give a reason from the text. For example: I found the axolotl most interesting because it can grow a new leg if it loses one, and even grow an extra one."},
     {"q": "9. Give one piece of evidence from the text which suggests that chickens are linked to dinosaurs.", "starters": "The text says that scientists found… / One piece of evidence is…", "model": "The text says that scientists found that the fossils of a Tyrannosaurus rex contained substances which are identical to those found in the chicken. This shows chickens are linked to dinosaurs."}
   ],
+  sheetMap: { R: { text: [2, 3], questions: [4] }, M: { tt: [1], sums: [3], problems: [2, 4] } },
   maths: {
     title: "Maths Group 8 · Week 6",
     unit: "Addition and Subtraction",
@@ -483,10 +484,27 @@ function setupSheet(subj) {
       tip.hidden = true; clr.hidden = false;
     }
     else { tip.hidden = false; clr.hidden = true; }
+    await mountSheetPages(subj);
   }
   inp.onchange = async () => { const files = [...inp.files]; if (!files.length) return; tip.hidden = false; tip.textContent = 'Preparing the pages…'; try { const arr = await sheetPagesFromFiles(files, msg => { tip.textContent = msg; }); if (!arr.length) throw new Error('No pages found'); if (!(await idb.set(key(), arr))) throw new Error('Could not save on this device'); } catch (e) { tip.textContent = (e.message || 'Could not read the file') + ' Try photos of the pages.'; inp.value = ''; return; } inp.value = ''; tip.textContent = 'Attach the PDF from ManageBac (from the Files app) and the pages appear here. It stays on this iPad only.'; render(); };
   clr.onclick = async () => { await idb.del(key()); render(); };
   return render;
+}
+async function mountSheetPages(subj) { // show the relevant sheet page(s) above each section, per W.sheetMap
+  const arr = await idb.get(`sheet-${W.id}-${subj}`); const map = (W.sheetMap || {})[subj] || {};
+  document.querySelectorAll(`[data-sheetpages^="${subj}:"]`).forEach(el => {
+    const sec = el.dataset.sheetpages.split(':')[1]; el.innerHTML = '';
+    const nums = map[sec] || []; if (!arr || !nums.length) return;
+    nums.forEach(n => { const pg = arr[n - 1]; if (!pg) return; const im = document.createElement('img'); im.src = typeof pg === 'string' ? pg : pg.img; im.alt = `Sheet page ${n}`; im.style.cssText = 'width:100%;border:2px solid var(--line);border-radius:12px;background:#fff'; el.appendChild(im); });
+  });
+  if (subj === 'M' && Object.keys(map).length) { // maths: the pages are shown above their own sections, so the full gallery is hidden
+    const mounted = [...document.querySelectorAll('[data-sheetpages^="M:"] img')].length > 0;
+    [...$('sheetMPages').querySelectorAll('img')].forEach(im => { im.style.display = mounted ? 'none' : ''; });
+  }
+  if (subj === 'R' && map.text && map.text.length) { // in the Read tab, show only the text pages (questions page lives in the Questions tab)
+    const pages = $('sheetRPages'); [...pages.querySelectorAll('img')].forEach((im, i) => { if (!map.text.includes(i + 1)) im.style.display = 'none'; });
+    [...pages.querySelectorAll('.card')].forEach(c => { const pn = +(c.querySelector('b')?.textContent.replace(/\D/g, '') || 0); if (pn && !map.text.includes(pn)) c.style.display = 'none'; });
+  }
 }
 const renderSheetR = setupSheet('R'), renderSheetM = setupSheet('M');
 
@@ -652,38 +670,36 @@ $('testAgain').onclick = () => testShow('testStart');
 // ===================== QUIZ =====================
 let quizSet = [], quizIdx = 0, quizScore = 0;
 const quizBody = $('quizBody');
-function quizStart() { quizSet = (W.quiz || []).slice(); quizIdx = 0; quizScore = 0; quizRender(); }
-function quizRender() {
-  const n = quizSet.length; $('quizCount').textContent = `${Math.min(quizIdx + 1, n)} / ${n}`; $('quizBar').style.width = (n ? quizIdx / n * 100 : 0) + '%';
-  if (!n) { quizBody.innerHTML = '<p class="muted">No quiz this week.</p>'; return; }
-  if (quizIdx >= n) {
-    const pq = results().quizBest; if (!pq || quizScore >= pq.score) saveResults({ quizBest: { score: quizScore, n } });
-    quizBody.innerHTML = `<h3>${quizScore === n ? 'Perfect! 🏆' : quizScore / n >= .7 ? 'Great reading!' : 'Good try!'}</h3><p class="verdict ${quizScore / n >= .7 ? 'ok' : 'bad'}">${quizScore} / ${n}</p><p class="muted">Read the text again and have another go.</p><button class="big">Play again</button>`;
-    quizBody.querySelector('button').onclick = quizStart; return;
-  }
-  const item = quizSet[quizIdx], correct = item.a[0], opts = shuffle(item.a);
-  quizBody.innerHTML = `<div class="row between" style="align-items:flex-start"><h3 style="flex:1 1 200px">${esc(item.q)}</h3><button class="ghost" id="qHear">🔊</button></div><div class="opts"></div><p class="verdict" id="qVerdict"></p><button class="ghost" id="qNext" hidden>Next →</button>`;
-  $('qHear').onclick = () => say(item.q + ' ' + opts.join('. '), 0.9);
-  const box = quizBody.querySelector('.opts');
-  opts.forEach(o => {
-    const b = document.createElement('button'); b.className = 'opt'; b.textContent = o;
-    b.onclick = () => {
-      if (box.dataset.done) return; box.dataset.done = 1;
-      box.querySelectorAll('.opt').forEach(x => { if (x.textContent === correct) x.classList.add('ok'); });
-      { const qa = results().quizAnswers || {}; qa[W.quiz.indexOf(item)] = { chosen: o, ok: o === correct }; saveResults({ quizAnswers: qa }); }
-      const v = $('qVerdict');
-      if (o === correct) { quizScore++; v.textContent = '✓ Correct!'; v.className = 'verdict ok'; say('Correct!', 1); }
-      else { b.classList.add('bad'); v.textContent = 'The answer is: ' + correct; v.className = 'verdict bad'; say('Not quite. The answer is ' + correct, 0.9); }
-      $('qNext').hidden = false;
-    };
-    box.appendChild(b);
-  });
-  $('qNext').onclick = () => { quizIdx++; quizRender(); };
-}
-
-// ===================== RESULTS (per device, per week) =====================
 function results() { try { return JSON.parse(localStorage.getItem('spag-res-' + W.id) || '{}'); } catch (e) { return {}; } }
 function saveResults(patch) { try { localStorage.setItem('spag-res-' + W.id, JSON.stringify({ ...results(), ...patch })); } catch (e) {} }
+function quizStart() { quizSet = (W.quiz || []).slice(); quizIdx = 0; quizScore = 0; renderMC(); }
+function quizRender() {}
+function renderMC() { // multiple-choice questions from the sheet, all visible, in order
+  const list = $('mcList'); if (!list) return; list.innerHTML = '';
+  const qa = results().quizAnswers || {};
+  (W.quiz || []).forEach((item, qi) => {
+    const correct = item.a[0], opts = shuffle(item.a), saved = qa[qi];
+    const c = document.createElement('div'); c.className = 'card';
+    c.innerHTML = `<div class="row between" style="align-items:flex-start"><h3 style="flex:1 1 200px">${esc(item.q)}</h3><button class="ghost">🔊</button></div><div class="opts"></div><p class="verdict qv"></p>`;
+    c.querySelector('button').onclick = () => say(item.q + ' ' + opts.join('. '), 0.9);
+    const box = c.querySelector('.opts'), v = c.querySelector('.qv');
+    opts.forEach(o => {
+      const b = document.createElement('button'); b.className = 'opt'; b.textContent = o;
+      if (saved) { if (o === correct) b.classList.add('ok'); if (o === saved.chosen && !saved.ok) b.classList.add('bad'); }
+      b.onclick = () => {
+        if (box.dataset.done) return; box.dataset.done = 1;
+        box.querySelectorAll('.opt').forEach(x => { if (x.textContent === correct) x.classList.add('ok'); });
+        const ok = o === correct; if (!ok) b.classList.add('bad');
+        v.textContent = ok ? '✓ Correct!' : 'The answer is: ' + correct; v.className = 'verdict qv ' + (ok ? 'ok' : 'bad'); say(ok ? 'Correct!' : 'Not quite. The answer is ' + correct, 0.9);
+        const all = results().quizAnswers || {}; all[qi] = { chosen: o, ok }; saveResults({ quizAnswers: all });
+        const n = (W.quiz || []).length, done = Object.keys(all).length; if (done === n) { const sc = Object.values(all).filter(x => x.ok).length; saveResults({ quizBest: { score: sc, n } }); }
+      };
+      box.appendChild(b);
+    });
+    if (saved) { box.dataset.done = 1; v.textContent = saved.ok ? '✓ Correct!' : 'The answer is: ' + correct; v.className = 'verdict qv ' + (saved.ok ? 'ok' : 'bad'); }
+    list.appendChild(c);
+  });
+}
 
 // ===================== INK CANVAS (Apple Pencil / finger) =====================
 function effCell(opts, width) { // shrink the squares on narrow screens so the whole sum fits
