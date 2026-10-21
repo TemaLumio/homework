@@ -185,7 +185,7 @@
   <!-- READING -->
   <section id="read" hidden>
     <div class="subtabs" role="tablist">
-      <button class="sub" role="tab" aria-selected="true" data-sub="facts">1 · Read &amp; listen</button>
+      <button class="sub" role="tab" aria-selected="true" data-sub="facts">1 · Read the text</button>
       <button class="sub" role="tab" aria-selected="false" data-sub="quiz">2 · Quiz</button>
       <button class="sub" role="tab" aria-selected="false" data-sub="think">3 · My answers</button>
     </div>
@@ -195,15 +195,10 @@
       </div>
       <div class="card" id="sheetRCard">
         <div class="row between"><h3>📄 Original sheet</h3><div class="row"><label class="ghost" style="cursor:pointer;padding:10px 14px;font:700 .95rem var(--body);border:2px solid var(--line);border-radius:12px">📎 Attach the sheet<input type="file" id="sheetRFile" accept="application/pdf,image/*" multiple hidden></label><button class="ghost" id="sheetRClear" hidden>Remove</button></div></div>
-        <p class="tip" id="sheetRTip">Attach the PDF from ManageBac (from the Files app) and the pages appear here. It stays on this iPad only.</p>
+        <p class="tip" id="sheetRTip">Attach the PDF from ManageBac (from the Files app) and the pages appear here. Read the text on your own or out loud, then answer the questions in 2 · Quiz and 3 · My answers. It stays on this iPad only.</p>
         <div id="sheetRPages" style="display:grid;gap:10px"></div>
       </div>
-      <details class="card" id="simpleCard">
-        <summary>🗣 Simple version with read-aloud (tap to open)</summary>
-        <p class="tip">The text retold in simple words. Press ▶ to hear it; the part being read lights up.</p>
-        <div class="row"><button class="big grow" id="readAll">▶ Read the whole text to me</button><button class="ghost" id="readStop">⏹ Stop</button></div>
-        <div id="factList" style="display:grid;gap:12px;margin-top:12px"></div>
-      </details>
+      <div id="factList" hidden></div>
       <div class="card" id="glossCard"><h3>Glossary — tap a word to see what it means</h3><div class="gloss" id="glossList"></div></div>
     </div>
     <div id="quiz" class="card" hidden>
@@ -214,7 +209,7 @@
     <div id="think" style="display:grid;gap:12px" hidden>
       <div class="card">
         <h2>Answer in your own words</h2>
-        <p class="tip">Like the long questions on your sheet. Say your answer out loud first, then <b>write it with your Apple Pencil</b> in the box, or type it. </p>
+        <p class="tip">Questions 6–9 from your sheet. Read the text first, then <b>write your answer with the Apple Pencil</b> in the box, or type it. </p>
       </div>
       <div id="thinkList" style="display:grid;gap:12px"></div>
     </div>
@@ -539,12 +534,12 @@ function similar(a, b) { // allow one small slip (dictation often mishears endin
   return d + (a.length - i) + (b.length - j) <= 1;
 }
 function clearNow() { document.querySelectorAll('.fact.now').forEach(x => x.classList.remove('now')); }
-$('readAll').onclick = () => {
+if ($('readAll')) $('readAll').onclick = () => {
   const ps = W.reading?.passages || []; let i = 0;
   const next = () => { clearNow(); if (i >= ps.length) return; const c = document.querySelector(`.fact[data-i="${i}"]`); c?.classList.add('now'); c?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); const p = ps[i++]; say(p.title + '. ' + p.text, 0.9, next); };
   next();
 };
-$('readStop').onclick = () => { stopSpeech(); clearNow(); };
+if ($('readStop')) $('readStop').onclick = () => { stopSpeech(); clearNow(); };
 $('playAll').onclick = () => say(W.words.join('. ') + '.', 0.8);
 
 // ===================== PRACTICE =====================
@@ -872,8 +867,6 @@ function summary() {
   const r = results(); const lines = [];
   lines.push(`Spelling test (${W.words.length} words): ${r.spellBest != null ? r.spellBest + ' / ' + W.words.length : 'not taken yet'}`);
   lines.push(`Reading quiz: ${r.quizBest ? r.quizBest.score + ' / ' + r.quizBest.n : 'not taken yet'}`);
-  const rc = r.reading || {}; const keys = Object.keys(rc);
-  lines.push(`Reading aloud (dictation check): ${keys.length ? keys.map(k => `${(W.reading.passages[k] || {}).title}: ${rc[k]}%`).join('; ') : 'not done yet'}`);
   mathsSummary().forEach(l => lines.push('Maths — ' + l));
   return { r, lines };
 }
@@ -933,11 +926,10 @@ function recordedSummary() {
   const parts = [];
   parts.push(`Spelling test: ${r.spellBest != null ? r.spellBest + '/' + W.words.length : '—'}`);
   parts.push(`Reading quiz: ${r.quizBest ? r.quizBest.score + '/' + r.quizBest.n : '—'}`);
-  parts.push(`Reading aloud: ${Object.keys(r.reading || {}).length} passages`);
   parts.push(`Written answers: ${Object.keys(r.answers || {}).length}`);
   if (W.maths) { parts.push(`Times tables: ${m.tt?.score != null ? m.tt.score + '/' + m.tt.n : '—'}`); parts.push(`Sums checked: ${Object.keys(m.sums || {}).length}`); parts.push(`Problem answers: ${Object.values(m.problems || {}).reduce((n, o) => n + Object.keys(o).length, 0)}`); }
   parts.push(`Handwriting boxes used: ${inkN}`);
-  const empty = r.spellBest == null && !r.quizBest && !Object.keys(r.reading || {}).length && !Object.keys(r.answers || {}).length && m.tt?.score == null && !Object.keys(m.sums || {}).length && !inkN;
+  const empty = r.spellBest == null && !r.quizBest && !Object.keys(r.answers || {}).length && m.tt?.score == null && !Object.keys(m.sums || {}).length && !inkN;
   return { text: 'Recorded in this app on this iPad: ' + parts.join(' · '), empty };
 }
 function refreshRecorded() { const el = $('recorded'); if (!el) return; const { text, empty } = recordedSummary(); el.innerHTML = esc(text) + (empty ? '\n\n⚠️ Nothing is recorded here yet. Results live in the copy of the app where the work was done: if you solved in Safari, make the PDF in Safari; if from the Home Screen icon, make it there. Also press Check after each answer so it is saved.' : ''); el.style.borderLeft = empty ? '4px solid var(--bad)' : ''; }
