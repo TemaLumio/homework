@@ -10,8 +10,10 @@
 
 | Что | Адрес / место | Назначение |
 |---|---|---|
-| **Основное приложение (для iPad)** | https://temalumio.github.io/homework/ | Публичный сайт на GitHub Pages. Без входа, без Claude. Ребёнок работает здесь. |
-| Исходники сайта | GitHub-репозиторий `TemaLumio/homework`, ветка `main` | 4 файла: `index.html`, `weeks.json`, `icon.png`, `robots.txt` (+ этот README) |
+| **Основное приложение (для iPad)** | https://homework-3kd.pages.dev | Приватный сайт на Cloudflare Pages за Cloudflare Access (вход по коду на e-mail denis.uchaev@gmail.com, сессия 30 дней). Здесь же лежат PDF листов (`sheets/`) и приложение подгружает их сам. Ребёнок работает здесь. |
+| Публичное зеркало (без листов) | https://temalumio.github.io/homework/ | GitHub Pages. То же приложение, но PDF листов там нет — их нужно прикреплять вручную. |
+| Исходники сайта | GitHub-репозиторий `TemaLumio/homework`, ветка `main` | 4 файла: `index.html`, `weeks.json`, `icon.png`, `robots.txt` (+ этот README). **PDF листов в GitHub не кладём никогда** (публичный репозиторий). |
+| Папка деплоя Cloudflare | в сессии Claude: `<scratchpad>/deploy/` = копия сайта + `sheets/week6-spag.pdf`, `sheets/week6-maths.pdf`; в `weeks.json` у недели добавлено `"sheets": {"R":"sheets/…","M":"sheets/…"}` | Деплой: `CLOUDFLARE_API_TOKEN=… CLOUDFLARE_ACCOUNT_ID=61feea7ed162cfabf755a831038c1edb npx wrangler@3 pages deploy deploy --project-name homework --branch main --commit-dirty=true`. Токен Денис присылает в чат (в README не хранить). Cloudflare Access app id `69ea87ea-0f84-413b-b5d8-b0dfe18093f6`. |
 | Версия внутри Claude (запасная) | https://claude.ai/artifact/6gDRydiUFs1Zq7NroMaGiw | То же приложение + проверка почерка Claude, загрузка PDF «For grown-ups», «Send to Dad» через хранилище. Требует входа в аккаунт Дениса → ребёнку не давать. |
 | Рабочий файл этой версии | `/home/claude/spag-week6.html` (в сессии Claude) | Публикуется через Artifact |
 | Школьный портал | https://lumioprivateschool.managebac.com/parent/classes/13166675 (SPAG), `/13166687` (Maths) | Задания появляются как «Spelling Homework» / «Maths Homework» со вложением PDF. **Вложения нельзя скачать автоматически** — только вручную с телефона/компьютера. |
@@ -28,7 +30,8 @@
 **Вкладки:** ✏️ Spelling · 📖 Reading · 🔢 Maths · 📄 Report.
 
 - **Spelling**: 1 Look & listen (слова с подсветкой суффикса, озвучка) → 2 Practise (слышит — печатает — проверка по буквам) → 3 Friday test (все слова вразнобой, счёт, лучший результат).
-- **Reading**: 1 Read the text (оригинальный лист картинкой через «📎 Attach the sheet»; пересказа и проверки чтения вслух больше нет — ребёнок читает сам) → 2 Quiz (вопросы листа по порядку + Bonus) → 3 My answers (открытые вопросы листа: поле для пера + поле для печати).
+- **Reading**: 1 Read the text (страницы с текстом из оригинального листа + «🔊 Read it to me» / «🎤 I'll read it» по текстовому слою или OCR на устройстве) → 2 Questions (сверху страница листа с вопросами, ниже ВСЕ вопросы листа по порядку: 1–5 с вариантами ответа + Bonus, 6–9 — поле для пера + поле для печати). Отдельных вкладок Quiz / My answers больше нет.
+- **Maths**: над каждым разделом (Times tables / Column sums / Problems) показывается соответствующая страница оригинального листа; полная галерея листа при этом скрыта. Какие страницы куда — задаёт `sheetMap` недели.
 - **Maths**: 1 Times tables (быстрые примеры, таймер, Check all) → 2 Column sums (столбик впечатан в клетки, ребёнок пишет под чертой, ответ + проверка обратным действием) → 3 Problems (задачи: клетчатое поле, «штампы» чисел из условия, числовые/оценочные/текстовые части).
 - **Report**: строка «что записано на этом устройстве», имя, две карточки — SPAG report и Maths report, каждая: Make the PDF → 📤 Send (системное «Поделиться») / 💾 Save (в «Файлы → Загрузки»).
 
@@ -102,7 +105,13 @@
 После каждой новой недели (и любой правки заданий) писать в чат отдельным блоком **«Что отличается от листа»**: какие вопросы переформулированы, какие добавлены (Bonus), чего нет в приложении (например, рисование), что пересказано. Если отличий нет — так и написать. Без этого блока неделя не считается готовой: родитель должен знать, что именно уйдёт учителю.
 
 ### 4.2b. Оригинальный лист в приложении
-Текст и задания листа в приложение не перепечатываются (авторское право — материалы Twinkl и т.п.). Вместо этого родитель на iPad прикрепляет PDF/фото листа через «📎 Attach the sheet» (Reading и Maths) — страницы хранятся в IndexedDB устройства (`spag-sheets`, ключ `sheet-<weekId>-R|M`), никуда не отправляются и в репозиторий не попадают. Пересказ остаётся в свёрнутом блоке «Simple version» для озвучки.
+Текст листа в приложение не перепечатывается (авторское право — материалы Twinkl и т.п.); вопросы — дословно с листа (см. 4.2a). Лист показывается картинками: на Cloudflare-сайте приложение само скачивает PDF из `W.sheets` при первом открытии, иначе родитель прикрепляет PDF/фото через «📎 Attach the sheet». Страницы (картинка + текстовый слой/OCR) хранятся в IndexedDB устройства (`spag-sheets`, ключ `sheet-<weekId>-R|M`).
+
+У недели обязательно поле `sheetMap` — номера страниц PDF (с 1) для каждого раздела:
+```json
+"sheetMap": { "R": { "text": [2, 3], "questions": [4] }, "M": { "tt": [1], "sums": [3], "problems": [2, 4] } }
+```
+Read показывает только `R.text`, вкладка Questions — `R.questions`, разделы Maths — свои страницы. Для новой недели номера определять по PDF (`pdftoppm` и посмотреть). Та же неделя в Claude-версии: `sheetMap` пишется в документ `weeks/<id>` через `ArtifactData`.
 
 ### 4.3. Процедура публикации
 ```bash
@@ -111,9 +120,10 @@ cd /home/claude/site            # клон репозитория TemaLumio/home
 # 2. проверить JSON и ключи:
 node -e "const w=require('./weeks.json'); for (const x of w) { if(!x.id||!x.title||!x.words||!x.reading) throw x.id; if(x.maths){ for(const t of x.maths.timesTables) if(typeof t.a!=='number') throw t.q; } } console.log('ok', w.map(x=>x.id))"
 # 3. прогнать тест в headless-браузере (см. 5.2)
-# 4. commit + push
+# 4. commit + push (без PDF листов!)
 git add -A && git commit -m "Week 7" && git push origin main
-# 5. через 1–2 минуты проверить: curl -s https://temalumio.github.io/homework/weeks.json | head -c 200
+# 5. Cloudflare: скопировать index.html в deploy/, в deploy/weeks.json добавить "sheets", положить PDF в deploy/sheets/, выполнить wrangler pages deploy (см. раздел 1)
+# 6. проверить: curl -s https://temalumio.github.io/homework/weeks.json | head -c 200 ; сайт Cloudflare открыть в браузере (нужен вход)
 ```
 Если меняется и версия внутри Claude: та же неделя пишется в её хранилище через `ArtifactData` → `set` в коллекцию `weeks`, `doc_id = id`. Там недели хранятся отдельно от `weeks.json`.
 
@@ -153,6 +163,8 @@ git add -A && git commit -m "Week 7" && git push origin main
 | Результаты «пропали» | Проверить, в той же ли «двери» открыто приложение (Safari / иконка / Claude); строка «Recorded in this app…» во вкладке Report |
 | Firefox/Chrome в тесте не поддерживают `navigator.share` | Это нормально; на iOS работает |
 | Экранное время iOS «Только разрешённые сайты» блокирует cdnjs/fonts → приложение ломается | Не использовать этот режим |
+| Патч-скрипт с заменой «от строки A до строки B» захватил лишний блок (пропали `results()`, `saveResults()`, весь INK CANVAS) | Заменять только точные фрагменты; после патча сверять список функций с `git show HEAD:index.html` (`grep -o "^function [a-zA-Z]*"`) и прогонять тесты |
+| Обработчик «📎 Attach» вызывал `render()`, а не обёртку → страницы над разделами не появлялись | `mountSheetPages(subj)` вызывается внутри `render()` |
 
 ### 5.4. Что НЕ менять без необходимости
 - `id` существующих недель и ключи `localStorage` — иначе ребёнок потеряет результаты.
