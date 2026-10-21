@@ -161,6 +161,7 @@
       <p class="verdict" id="pracVerdict"></p>
       <div class="row"><button class="big grow" id="pracCheck">Check ✓</button><button class="ghost" id="pracNext" hidden>Next →</button><button class="ghost" id="pracPeek">👀 Show me</button></div>
     </div>
+    <div data-photos="S:spelling"></div>
     <div id="test" class="card" hidden>
       <div id="testStart">
         <h2>Friday test</h2>
@@ -203,6 +204,7 @@
     <div id="quiz" hidden><div id="quizBody" hidden></div><span id="quizCount" hidden></span><i id="quizBar" hidden></i></div>
     <div id="think" style="display:grid;gap:12px" hidden>
       <div data-sheetpages="R:questions" style="display:grid;gap:10px"></div>
+      <div data-photos="R:questions"></div>
       <div class="card">
         <h2>Questions</h2>
         <p class="tip">The questions from your sheet, in order. Tap an answer for the multiple-choice ones; for the writing ones, <b>write with the Apple Pencil</b> in the box or type.<span id="thinkHint" hidden></span></p>
@@ -226,6 +228,7 @@
         <div id="sheetMPages" style="display:grid;gap:10px"></div>
       </div>
     <div data-sheetpages="M:tt" style="display:grid;gap:10px"></div>
+      <div data-photos="M:tt"></div>
     <div class="card">
       <h2 id="mttTitle">Times tables — Friday test</h2>
       <p class="tip" id="mathsIntro"></p>
@@ -237,11 +240,13 @@
     </div>
     <div id="msums" style="display:grid;gap:12px" hidden>
       <div data-sheetpages="M:sums" style="display:grid;gap:10px"></div>
+      <div data-photos="M:sums"></div>
       <div class="card"><h2>Column addition and subtraction</h2><p class="tip">Work it out with your pencil in the box, type the answer, then check it with the inverse operation (the opposite sum) like on your sheet.</p></div>
       <div id="sumList" style="display:grid;gap:12px"></div>
     </div>
     <div id="mprob" style="display:grid;gap:12px" hidden>
       <div data-sheetpages="M:problems" style="display:grid;gap:10px"></div>
+      <div data-photos="M:problems"></div>
       <div class="card"><h2>Problem solving and reasoning</h2><p class="tip">Read the problem (or press 🔊). Do your working with the pencil, then type each answer. </p></div>
       <div id="probList" style="display:grid;gap:12px"></div>
     </div>
@@ -508,6 +513,40 @@ async function mountSheetPages(subj) { // show the relevant sheet page(s) above 
 }
 const renderSheetR = setupSheet('R'), renderSheetM = setupSheet('M');
 
+// ===================== PHOTOS OF WORK DONE ON PAPER =====================
+const PHOTO_SECTIONS = { 'S:spelling': 'Spelling', 'R:questions': 'Reading questions', 'M:tt': 'Times tables', 'M:sums': 'Column sums', 'M:problems': 'Problem solving' };
+const photoKey = sec => `photos-${W.id}-${sec}`;
+let photoCache = {}; // sec -> [dataURL]; filled by mountPhotos so the report builders can stay synchronous
+const photosOf = sec => photoCache[sec] || [];
+async function shrinkImage(file, max = 1600) {
+  const url = URL.createObjectURL(file);
+  try {
+    const im = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
+    const k = Math.min(1, max / Math.max(im.width, im.height)); const c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+    const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(im, 0, 0, c.width, c.height); return c.toDataURL('image/jpeg', 0.82);
+  } finally { URL.revokeObjectURL(url); }
+}
+async function mountPhotos() {
+  photoCache = {};
+  for (const el of document.querySelectorAll('[data-photos]')) {
+    const sec = el.dataset.photos; const list = (await idb.get(photoKey(sec))) || []; photoCache[sec] = list;
+    el.innerHTML = `<div class="card" style="gap:8px"><div class="row between"><b>📷 Done on paper?</b><button class="ghost add">📷 Add a photo</button><input type="file" accept="image/*" multiple hidden></div><p class="tip" style="margin:0">Take a photo of the finished page (or pick one from Photos). It goes into the report for the teacher${list.length ? ' — ' + list.length + ' photo' + (list.length > 1 ? 's' : '') + ' added ✓' : ''}.</p><div class="row ph" style="gap:8px;flex-wrap:wrap"></div></div>`;
+    const row = el.querySelector('.ph');
+    list.forEach((src, i) => {
+      const w = document.createElement('div'); w.style.cssText = 'position:relative;margin-top:6px';
+      w.innerHTML = `<img src="${src}" alt="Photo ${i + 1}" style="height:140px;border-radius:10px;border:2px solid var(--line)"><button class="ghost" title="Remove" style="position:absolute;top:-8px;right:-8px;padding:2px 9px">✕</button>`;
+      w.querySelector('button').onclick = async () => { const arr = (await idb.get(photoKey(sec))) || []; arr.splice(i, 1); await idb.set(photoKey(sec), arr); mountPhotos(); };
+      row.appendChild(w);
+    });
+    el.querySelector('.add').onclick = () => el.querySelector('input').click();
+    el.querySelector('input').onchange = async e => {
+      const files = [...e.target.files]; if (!files.length) return; const arr = (await idb.get(photoKey(sec))) || [];
+      for (const f of files) { try { arr.push(await shrinkImage(f)); } catch (err) { console.warn('photo failed', err); } }
+      await idb.set(photoKey(sec), arr); mountPhotos();
+    };
+  }
+}
+
 // ===================== RENDER WEEK =====================
 function renderWeeks() {
   const box = $('weekChips'); box.innerHTML = '';
@@ -572,7 +611,7 @@ function renderWeek() {
     b.onclick = () => { if (!b.querySelector('span')) { const s = document.createElement('span'); s.textContent = d; b.appendChild(s); say(w + '. ' + d); } else b.querySelector('span').remove(); };
     gl.appendChild(b);
   });
-  quizStart(); renderThink(); renderMaths(); renderSheetR(); renderSheetM();
+  quizStart(); renderThink(); renderMaths(); renderSheetR(); renderSheetM(); mountPhotos();
 }
 function commonSuffix(words) {
   if (!words?.length) return '';
@@ -923,6 +962,8 @@ function mathsSummary() {
   const sums = Object.values(m.sums || {}); out.push(`Column sums: ${sums.filter(x => x.ok).length} / ${(M.sums || []).length} correct (${sums.filter(x => x.inv).length} checked with the inverse)`);
   let pn = 0, pok = 0; (M.problems || []).forEach((pr, i) => pr.parts.forEach((pt, j) => { if (pt.type !== 'text') { pn++; if ((m.problems?.[i] || {})[j]?.ok) pok++; } }));
   out.push(`Problem answers: ${pok} / ${pn} correct`);
+  const tag = (i, sec, inApp) => { const n = photosOf(sec).length; if (!n) return; out[i] = inApp ? out[i] + ' + done on paper (photo attached)' : out[i].replace(/:.*$/, ': done on paper (photo attached)'); };
+  tag(0, 'M:tt', m.tt?.score != null); tag(1, 'M:sums', sums.length || (M.sums || []).some((x, i) => inks[W.id + '-sum' + i]?.hasInk())); tag(2, 'M:problems', pok || Object.values(m.problems || {}).some(o => Object.keys(o).length) || (M.problems || []).some((x, i) => inks[W.id + '-prob' + i]?.hasInk()));
   return out;
 }
 
@@ -947,37 +988,50 @@ function newDoc() {
   const h = (txt, size = 11, bold = false) => { txt = pdfSafe(txt); doc.setFont('helvetica', bold ? 'bold' : 'normal'); doc.setFontSize(size); const ls = doc.splitTextToSize(txt, Wd); if (y + ls.length * size * 0.45 > 285) { doc.addPage(); y = 18; } doc.text(ls, L, y); y += ls.length * size * 0.45 + 2; };
   const img = (ink, frac = 1) => { if (!ink?.hasInk()) return false; const im = ink.toImage(); if (!(im.width > 0 && im.height > 0)) return false; const hmm = Wd * frac * im.height / im.width; if (y + hmm > 285) { doc.addPage(); y = 18; } doc.addImage(im.toDataURL('image/jpeg', 0.85), 'JPEG', L, y, Wd * frac, hmm); y += hmm + 2; return true; };
   const gap = n => { y += n; };
-  return { doc, h, img, gap };
+  const pic = (src, frac = 1) => { try { const p = doc.getImageProperties(src); let wmm = Wd * frac, hmm = wmm * p.height / p.width; if (hmm > 250) { wmm = wmm * 250 / hmm; hmm = 250; } if (y + hmm > 285) { doc.addPage(); y = 18; } doc.addImage(src, 'JPEG', L, y, wmm, hmm); y += hmm + 4; return true; } catch (e) { return false; } };
+  const paper = (sec, label) => { const ph = photosOf(sec); if (!ph.length) return false; h(`${label || 'Done on paper'} — photo${ph.length > 1 ? 's' : ''} of the completed page:`, 10, true); ph.forEach(p => pic(p)); gap(2); return true; };
+  return { doc, h, img, gap, pic, paper };
 }
 function buildSpagPdf(name) {
-  const { doc, h, img, gap } = newDoc(); const { r } = summary();
+  const { doc, h, img, gap, paper } = newDoc(); const { r } = summary(); const phS = photosOf('S:spelling').length, phR = photosOf('R:questions').length;
   const sheetQ = (W.quiz || []).map((q, i) => ({ q, i })).filter(x => !/^bonus:/i.test(x.q.q));
   const qa = r.quizAnswers || {}; const answered = sheetQ.filter(x => qa[x.i]); const qok = answered.filter(x => qa[x.i].ok).length;
-  const lines = [`Spelling test (${W.words.length} words): ${r.spellBest != null ? r.spellBest + ' / ' + W.words.length : 'not taken yet'}`, `Reading questions ${sheetQ.length ? '1–' + sheetQ.length : ''}: ${answered.length ? qok + ' / ' + sheetQ.length + ' correct' : 'not answered yet'}`];
+  const lines = [`Spelling test (${W.words.length} words): ${r.spellBest != null ? r.spellBest + ' / ' + W.words.length : phS ? 'done on paper (photo attached)' : 'not taken yet'}${r.spellBest != null && phS ? ' + practice on paper (photo attached)' : ''}`, `Reading questions ${sheetQ.length ? '1–' + sheetQ.length : ''}: ${answered.length ? qok + ' / ' + sheetQ.length + ' correct' : 'not answered yet'}`];
+  if (phR) { const k = lines.findIndex(l => l.startsWith('Reading questions')); const inApp = answered.length || Object.keys(r.answers || {}).length || (W.open || []).some((t, i) => inks[W.id + '-' + i]?.hasInk()); lines[k] = inApp ? lines[k] + ' + done on paper (photo attached)' : `Reading questions ${sheetQ.length ? '1–' + sheetQ.length : ''}: done on paper (photo attached)`; }
   h(`SPAG homework — ${W.title}`, 18, true); h(`${name ? name + ' · ' : ''}${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`, 11); gap(2);
   h('Results', 13, true); lines.forEach(l => h('• ' + l));
   if ((r.spellWrong || []).length) h('• Spelling words to practise: ' + r.spellWrong.join(', '));
   gap(2); h(`Spelling list (${W.pattern?.title || ''}): ${W.words.join(', ')}`, 10); gap(3);
   h(`Reading comprehension — ${W.reading?.title || ''}`, 13, true);
+  paper('R:questions');
+  const inAppR = answered.length || Object.keys(r.answers || {}).length || (W.open || []).some((t, i) => inks[W.id + '-' + i]?.hasInk());
+  if (phR && !inAppR) { /* done on paper only: the photo is the answer sheet */ } else {
   if (sheetQ.length) { h('Answers to the questions', 11, true); sheetQ.forEach(({ q, i }) => { const a = qa[i]; h(`${q.q}`, 10); h(`   Answer: ${a ? a.chosen + (a.ok ? '  ✓' : '  ✗') : '(not answered)'}`, 10); }); gap(2); }
   (W.open || []).forEach((t, i) => {
     h(`${/^\d+\./.test(t.q) ? '' : (i + 1) + '. '}${t.q}`, 11, true); const typed = (r.answers || {})[i];
     if (img(inks[W.id + '-' + i])) { if (typed) h('Typed: ' + typed, 10); } else h(typed || '(no answer)', 11);
     const fbk = ((r.feedback || {})[i] || {}).feedback; if (fbk) h('Feedback: ' + fbk, 9); gap(2);
   });
+  }
+  if (phS) { gap(2); h('Spelling', 13, true); paper('S:spelling', 'Spelling practice on paper'); }
   if (noteText) { gap(2); h('Note', 13, true); h(noteText, 11); }
   gap(4); h('Message for the teacher (copy and paste):', 10, true); h(`Dear Ms Christodoulou, please find attached ${name || 'my child'}'s completed SPAG homework for ${W.title} (spelling practice and reading comprehension). Kind regards`, 9);
   return { blob: doc.output('blob'), fname: `SPAG ${W.title} ${dateStamp()}${name ? ' ' + pdfSafe(name) : ''}.pdf`, lines, subject: 'SPAG' };
 }
 function buildMathsPdf(name) {
-  const { doc, h, img, gap } = newDoc(); const M = W.maths, m = mres(); const lines = mathsSummary();
+  const { doc, h, img, gap, paper } = newDoc(); const M = W.maths, m = mres(); const lines = mathsSummary(); const ph = { tt: photosOf('M:tt').length, sums: photosOf('M:sums').length, problems: photosOf('M:problems').length };
   h(`Maths homework — ${M.title || W.title}`, 18, true); h(`${name ? name + ' · ' : ''}${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`, 11); gap(2);
   h('Results', 13, true); lines.forEach(l => h('• ' + l));
   if (m.tt?.wrong?.length) h('• Times tables to practise: ' + m.tt.wrong.join('; '), 9);
-  if ((M.timesTables || []).length && m.tt?.answers) { gap(2); h('Times tables', 13, true); h(M.timesTables.map((t, i) => `${i + 1}. ${t.q.includes('=') ? t.q.replace('☐', '[' + (m.tt.answers[i] || '…') + ']') : t.q + ' = ' + (m.tt.answers[i] || '…')}`).join('    '), 9); }
-  if ((M.sums || []).length) { gap(2); h('Written calculations', 13, true);
+  if (ph.tt) { gap(2); h('Times tables', 13, true); paper('M:tt'); }
+  if ((M.timesTables || []).length && m.tt?.answers) { gap(2); if (!ph.tt) h('Times tables', 13, true); else h('Also done in the app:', 10, true); h(M.timesTables.map((t, i) => `${i + 1}. ${t.q.includes('=') ? t.q.replace('☐', '[' + (m.tt.answers[i] || '…') + ']') : t.q + ' = ' + (m.tt.answers[i] || '…')}`).join('    '), 9); }
+  const sumsInApp = Object.keys(m.sums || {}).length || (M.sums || []).some((x, i) => inks[W.id + '-sum' + i]?.hasInk());
+  if (ph.sums) { gap(2); h('Written calculations', 13, true); paper('M:sums'); }
+  if ((M.sums || []).length && (!ph.sums || sumsInApp)) { gap(2); if (!ph.sums) h('Written calculations', 13, true); else h('Also done in the app:', 10, true);
     M.sums.forEach(([a, op, b], i) => { const r = (m.sums || {})[i]; h(`${i + 1}. ${a} ${op} ${b} = ${r?.ans || '…'} ${r ? (r.ok ? '✓' : '✗') : ''}${r?.inv ? ' (inverse checked)' : ''}`, 10); img(inks[W.id + '-sum' + i], 0.6); }); }
-  if ((M.problems || []).length) { gap(2); h('Problem solving and reasoning', 13, true);
+  const probInApp = Object.values(m.problems || {}).some(o => Object.keys(o).length) || (M.problems || []).some((x, i) => inks[W.id + '-prob' + i]?.hasInk());
+  if (ph.problems) { gap(2); h('Problem solving and reasoning', 13, true); paper('M:problems'); }
+  if ((M.problems || []).length && (!ph.problems || probInApp)) { gap(2); if (!ph.problems) h('Problem solving and reasoning', 13, true); else h('Also done in the app:', 10, true);
     M.problems.forEach((pr, i) => { h(`${i + 1}. ${pr.title}`, 11, true); h(pr.text, 9); img(inks[W.id + '-prob' + i]);
       const hasInkP = !!inks[W.id + '-prob' + i]?.hasInk();
       pr.parts.forEach((pt, j) => { const sv = ((m.problems || {})[i] || {})[j] || {}; const shown = sv.ans ? sv.ans : (pt.type === 'text' && hasInkP ? '(see working above)' : '(no answer)'); h(`${pt.q}: ${shown}${pt.type !== 'text' ? (sv.ok ? ' ✓' : sv.ans ? ' ✗' : '') : ''}`, 10); if (sv.fb) h('Feedback: ' + sv.fb, 9); }); gap(2); }); }
@@ -993,8 +1047,8 @@ function recordedSummary() {
   parts.push(`Reading quiz: ${r.quizBest ? r.quizBest.score + '/' + r.quizBest.n : '—'}`);
   parts.push(`Written answers: ${Object.keys(r.answers || {}).length}`);
   if (W.maths) { parts.push(`Times tables: ${m.tt?.score != null ? m.tt.score + '/' + m.tt.n : '—'}`); parts.push(`Sums checked: ${Object.keys(m.sums || {}).length}`); parts.push(`Problem answers: ${Object.values(m.problems || {}).reduce((n, o) => n + Object.keys(o).length, 0)}`); }
-  parts.push(`Handwriting boxes used: ${inkN}`);
-  const empty = r.spellBest == null && !r.quizBest && !Object.keys(r.answers || {}).length && m.tt?.score == null && !Object.keys(m.sums || {}).length && !inkN;
+  parts.push(`Handwriting boxes used: ${inkN}`); const phN = Object.values(photoCache).reduce((n, a) => n + a.length, 0); parts.push(`Photos of paper work: ${phN}`);
+  const empty = r.spellBest == null && !r.quizBest && !Object.keys(r.answers || {}).length && m.tt?.score == null && !Object.keys(m.sums || {}).length && !inkN && !phN;
   return { text: 'Recorded in this app on this iPad: ' + parts.join(' · '), empty };
 }
 function refreshRecorded() { const el = $('recorded'); if (!el) return; const { text, empty } = recordedSummary(); el.innerHTML = esc(text) + (empty ? '\n\n⚠️ Nothing is recorded here yet. Results live in the copy of the app where the work was done: if you solved in Safari, make the PDF in Safari; if from the Home Screen icon, make it there. Also press Check after each answer so it is saved.' : ''); el.style.borderLeft = empty ? '4px solid var(--bad)' : ''; }
