@@ -195,7 +195,7 @@
       </div>
       <div class="card" id="sheetRCard">
         <div class="row between"><h3>📄 Original sheet</h3><div class="row"><label class="ghost" style="cursor:pointer;padding:10px 14px;font:700 .95rem var(--body);border:2px solid var(--line);border-radius:12px">📎 Attach the sheet<input type="file" id="sheetRFile" accept="application/pdf,image/*" multiple hidden></label><button class="ghost" id="sheetRClear" hidden>Remove</button></div></div>
-        <p class="tip" id="sheetRTip">Attach the PDF from ManageBac (from the Files app) and the pages appear here. Read the text on your own or out loud, then answer the questions in 2 · Quiz and 3 · My answers. It stays on this iPad only.</p>
+        <p class="tip" id="sheetRTip">Attach the PDF from ManageBac (from the Files app) and the pages appear here. Read the text yourself, or press 🔊 to hear a page, or 🎤 to read it aloud and check yourself. Then answer the questions in 2 · Quiz and 3 · My answers. It stays on this iPad only.</p>
         <div id="sheetRPages" style="display:grid;gap:10px"></div>
       </div>
       <div id="factList" hidden></div>
@@ -276,6 +276,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
 <script>
 // ===================== DEFAULT WEEK (used when the store is empty or unavailable) =====================
 const DEFAULT_WEEK = {
@@ -414,28 +415,69 @@ const idb = {
   set: async (k, v) => { try { const d = await idb.open(); await new Promise((res, rej) => { const t = d.transaction('sheets', 'readwrite'); t.objectStore('sheets').put(v, k); t.oncomplete = res; t.onerror = () => rej(t.error); }); return true; } catch (e) { return false; } },
   del: async k => { try { const d = await idb.open(); await new Promise((res, rej) => { const t = d.transaction('sheets', 'readwrite'); t.objectStore('sheets').delete(k); t.oncomplete = res; t.onerror = () => rej(t.error); }); } catch (e) {} }
 };
-async function sheetPagesFromFiles(files) {
+async function sheetPagesFromFiles(files, progress = () => {}) {
   const out = [];
   for (const f of files) {
     if (f.type === 'application/pdf') {
       const lib = window.pdfjsLib || window['pdfjs-dist/build/pdf']; if (!lib) throw new Error('PDF reader did not load. Take photos of the pages instead.');
       lib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
       const pdf = await lib.getDocument({ data: await f.arrayBuffer() }).promise;
-      for (let n = 1; n <= Math.min(pdf.numPages, 12); n++) { const page = await pdf.getPage(n); const vp = page.getViewport({ scale: 2 }); const cv = document.createElement('canvas'); cv.width = vp.width; cv.height = vp.height; await page.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise; out.push(cv.toDataURL('image/jpeg', 0.85)); }
+      for (let n = 1; n <= Math.min(pdf.numPages, 12); n++) { const page = await pdf.getPage(n); const vp = page.getViewport({ scale: 2 }); const cv = document.createElement('canvas'); cv.width = vp.width; cv.height = vp.height; await page.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise;
+        let text = ''; try { const tc = await page.getTextContent(); let lastY = null; text = tc.items.map(it => { const y = Math.round(it.transform[5]); const sep = lastY !== null && Math.abs(y - lastY) > 3 ? '\n' : ' '; lastY = y; return sep + it.str; }).join('').replace(/[ \t]+/g, ' ').replace(/\n\s*/g, '\n').trim(); } catch (e) {}
+        out.push({ img: cv.toDataURL('image/jpeg', 0.85), text, needOcr: text.split(/\s+/).length < 40 }); }
     } else if (f.type.startsWith('image/')) {
-      out.push(await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(f); }));
+      out.push({ img: await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(f); }), text: '', needOcr: true });
     }
   }
+  // Pages without a text layer (scans, photos): recognise the text on this device so it can be read aloud and checked
+  if (window.Tesseract) {
+    let worker = null;
+    for (let i = 0; i < out.length; i++) {
+      if (!out[i].needOcr) continue;
+      try {
+        if (!worker) { progress(`Preparing text recognition…`); worker = await Tesseract.createWorker('eng', 1, { logger: m => { if (m.status === 'recognizing text') progress(`Reading page ${i + 1} of ${out.length}… ${Math.round(m.progress * 100)}%`); } }); }
+        const { data } = await worker.recognize(out[i].img);
+        const t = (data.text || '').replace(/-\n/g, '').split('\n').filter(l => { const letters = (l.match(/[A-Za-z]/g) || []).length; return letters >= 8 && letters / Math.max(1, l.replace(/\s/g, '').length) > 0.7; }).join('\n').replace(/[ \t]+/g, ' ').trim();
+        if (t.split(/\s+/).length >= 40) out[i].text = t;
+      } catch (e) { console.warn('OCR failed', e); break; }
+    }
+    if (worker) { try { await worker.terminate(); } catch (e) {} }
+  }
+  out.forEach(x => delete x.needOcr);
   return out;
 }
 function setupSheet(subj) {
   const key = () => `sheet-${W.id}-${subj}`, pages = $(`sheet${subj}Pages`), tip = $(`sheet${subj}Tip`), clr = $(`sheet${subj}Clear`), inp = $(`sheet${subj}File`);
   async function render() {
     const arr = await idb.get(key()); pages.innerHTML = '';
-    if (arr && arr.length) { arr.forEach((src, i) => { const im = document.createElement('img'); im.src = src; im.alt = `Sheet page ${i + 1}`; im.style.cssText = 'width:100%;border:2px solid var(--line);border-radius:12px;background:#fff'; pages.appendChild(im); }); tip.hidden = true; clr.hidden = false; }
+    if (arr && arr.length) {
+      arr.forEach((pg, i) => {
+        const src = typeof pg === 'string' ? pg : pg.img, text = (typeof pg === 'string' ? '' : pg.text) || '';
+        const im = document.createElement('img'); im.src = src; im.alt = `Sheet page ${i + 1}`; im.style.cssText = 'width:100%;border:2px solid var(--line);border-radius:12px;background:#fff'; pages.appendChild(im);
+        if (subj === 'R' && text.split(/\s+/).length > 40) {
+          const box = document.createElement('div'); box.className = 'card'; box.style.gap = '8px';
+          box.innerHTML = `<div class="row between"><b>Page ${i + 1}</b><div class="row"><button class="ghost rd">🔊 Read it to me</button><button class="ghost st">⏹</button><button class="ghost me">🎤 I'll read it</button></div></div>
+            <div class="chk" hidden style="display:grid;gap:8px"><p class="tip">Tap in the box, press the 🎤 key on the keyboard and read the page out loud. Then press Check.</p><textarea class="answer" placeholder="Your reading will appear here…"></textarea><div class="row"><button class="big grow go">Check my reading</button><button class="ghost cl">Clear</button></div><p class="verdict rv"></p><div class="feedback rf" hidden></div></div>`;
+          const chk = box.querySelector('.chk'), ta = box.querySelector('textarea'), rv = box.querySelector('.rv'), rf = box.querySelector('.rf');
+          box.querySelector('.rd').onclick = () => say(text.replace(/\n/g, '. '), 0.88);
+          box.querySelector('.st').onclick = () => stopSpeech();
+          box.querySelector('.me').onclick = () => { chk.hidden = !chk.hidden; if (!chk.hidden) ta.focus(); };
+          box.querySelector('.cl').onclick = () => { ta.value = ''; rv.textContent = ''; rf.hidden = true; };
+          box.querySelector('.go').onclick = () => {
+            const heard = ta.value.trim(); if (!heard) { rv.textContent = 'Read it into the box first.'; rv.className = 'verdict rv bad'; return; }
+            const r = compareReading(text.replace(/\n/g, ' '), heard); const pct = Math.round(r.hit / r.total * 100);
+            rv.textContent = pct >= 95 ? `🏆 ${pct}% — brilliant reading!` : pct >= 80 ? `⭐ ${pct}% — well done!` : `${pct}% — good try, let's practise the tricky words.`; rv.className = 'verdict rv ' + (pct >= 80 ? 'ok' : 'bad');
+            if (r.missed.length) { rf.hidden = false; rf.innerHTML = 'Words to practise (tap to hear): ' + r.missed.slice(0, 40).map(w => `<button class="ghost" style="padding:4px 10px;margin:2px">${esc(w)}</button>`).join(''); rf.querySelectorAll('button').forEach(b => b.onclick = () => say(b.textContent, 0.8)); } else rf.hidden = true;
+            say(pct >= 80 ? 'Well done!' : 'Good try. Let us practise the tricky words.', 1);
+          };
+          pages.appendChild(box);
+        }
+      });
+      tip.hidden = true; clr.hidden = false;
+    }
     else { tip.hidden = false; clr.hidden = true; }
   }
-  inp.onchange = async () => { const files = [...inp.files]; if (!files.length) return; tip.hidden = false; tip.textContent = 'Preparing the pages…'; try { const arr = await sheetPagesFromFiles(files); if (!arr.length) throw new Error('No pages found'); if (!(await idb.set(key(), arr))) throw new Error('Could not save on this device'); } catch (e) { tip.textContent = (e.message || 'Could not read the file') + ' Try photos of the pages.'; inp.value = ''; return; } inp.value = ''; tip.textContent = 'Attach the PDF from ManageBac (from the Files app) and the pages appear here. It stays on this iPad only.'; render(); };
+  inp.onchange = async () => { const files = [...inp.files]; if (!files.length) return; tip.hidden = false; tip.textContent = 'Preparing the pages…'; try { const arr = await sheetPagesFromFiles(files, msg => { tip.textContent = msg; }); if (!arr.length) throw new Error('No pages found'); if (!(await idb.set(key(), arr))) throw new Error('Could not save on this device'); } catch (e) { tip.textContent = (e.message || 'Could not read the file') + ' Try photos of the pages.'; inp.value = ''; return; } inp.value = ''; tip.textContent = 'Attach the PDF from ManageBac (from the Files app) and the pages appear here. It stays on this iPad only.'; render(); };
   clr.onclick = async () => { await idb.del(key()); render(); };
   return render;
 }
