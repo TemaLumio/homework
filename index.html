@@ -449,7 +449,14 @@ async function sheetPagesFromFiles(files, progress = () => {}) {
 function setupSheet(subj) {
   const key = () => `sheet-${W.id}-${subj}`, pages = $(`sheet${subj}Pages`), tip = $(`sheet${subj}Tip`), clr = $(`sheet${subj}Clear`), inp = $(`sheet${subj}File`);
   async function render() {
-    const arr = await idb.get(key()); pages.innerHTML = '';
+    let arr = await idb.get(key()); pages.innerHTML = '';
+    const remote = (W.sheets || {})[subj];
+    if ((!arr || !arr.length) && remote && !render._busy) { // sheet published on the (protected) site: fetch it once and keep it on this device
+      render._busy = true; tip.hidden = false; tip.textContent = 'Loading the sheet…';
+      try { const resp = await fetch(remote, { cache: 'no-store' }); if (!resp.ok) throw new Error('not found'); const blob = await resp.blob(); const file = new File([blob], remote.split('/').pop(), { type: blob.type || 'application/pdf' }); arr = await sheetPagesFromFiles([file], msg => { tip.textContent = msg; }); if (arr.length) await idb.set(key(), arr); }
+      catch (e) { arr = null; }
+      render._busy = false;
+    }
     if (arr && arr.length) {
       arr.forEach((pg, i) => {
         const src = typeof pg === 'string' ? pg : pg.img, text = (typeof pg === 'string' ? '' : pg.text) || '';
