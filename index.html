@@ -63,6 +63,8 @@
   .chips { display: flex; gap: 6px; flex-wrap: wrap; }
   .chip { font: 700 .9rem var(--body); border: 2px solid var(--line); border-radius: 999px; padding: 6px 12px; background: var(--paper); color: var(--fg); cursor: pointer; }
   .chip[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .chip.past { color: #d8302e; border-color: #d8302e; text-decoration: line-through; opacity: .85; }
+  .chip.past[aria-selected="true"] { background: #d8302e; color: #fff; }
   .tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
   @media (max-width: 520px) { .tabs { grid-template-columns: 1fr 1fr; } .tab { font-size: 1rem; padding: 10px; } .ink-canvas:not(.page-ink) { height: 340px !important; } }
   .tt { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
@@ -557,7 +559,7 @@ async function mountPhotos() {
 function renderWeeks() {
   const box = $('weekChips'); box.innerHTML = '';
   weeks.forEach(w => {
-    const b = document.createElement('button'); b.className = 'chip'; b.setAttribute('aria-selected', w.id === W.id); b.textContent = w.title;
+    const b = document.createElement('button'); b.className = 'chip' + (w !== weeks[weeks.length - 1] ? ' past' : ''); b.setAttribute('aria-selected', w.id === W.id); b.textContent = w.title; if (w !== weeks[weeks.length - 1]) b.title = 'Previous homework';
     b.onclick = () => { W = w; renderWeek(); }; box.appendChild(b);
   });
 }
