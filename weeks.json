@@ -548,5 +548,505 @@
     ]
    }
   }
+ },
+ {
+  "id": "t1b-w1",
+  "title": "Term 1B · Week 1",
+  "order": 7,
+  "pattern": {
+   "title": "Words ending in -sion",
+   "tip": "The ending -sion sounds like “zhun” (fusion, persuasion) or “shun” (tension, expansion). Tap a word to hear it. Say it, then spell it out loud."
+  },
+  "words": [
+   "expansion",
+   "extension",
+   "comprehension",
+   "tension",
+   "corrosion",
+   "supervision",
+   "fusion",
+   "conclusion",
+   "persuasion",
+   "suspension"
+  ],
+  "sentences": {
+   "expansion": "The expansion of the town meant new houses were built.",
+   "extension": "We built an extension on the side of our house.",
+   "comprehension": "Reading comprehension means understanding what you read.",
+   "tension": "There was tension in the room before the test.",
+   "corrosion": "Rust is a kind of corrosion on metal.",
+   "supervision": "Children swim under the supervision of an adult.",
+   "fusion": "The fusion of two ideas made a brilliant plan.",
+   "conclusion": "At the end of the story we reached a conclusion.",
+   "persuasion": "It took a lot of persuasion to make him come.",
+   "suspension": "The bridge hangs from a suspension of strong cables."
+  },
+  "reading": {
+   "title": "British Trees",
+   "passages": []
+  },
+  "sheetMap": {
+   "R": {
+    "text": [
+     2,
+     3
+    ],
+    "questions": [
+     4,
+     5
+    ]
+   },
+   "M": {
+    "tt": [
+     1
+    ],
+    "sums": [
+     2
+    ],
+    "problems": [
+     3,
+     4
+    ]
+   }
+  },
+  "quiz": [
+   {
+    "q": "1. Which tree is described in the text as living to around 1000 years old? Tick one.",
+    "a": [
+     "oak",
+     "beech",
+     "lime",
+     "sycamore"
+    ]
+   },
+   {
+    "q": "2. Number the trees from 1–4 to show the order of how long they live, from shortest to longest: alder tree",
+    "a": [
+     "1",
+     "2",
+     "3",
+     "4"
+    ]
+   },
+   {
+    "q": "2. Number the trees from 1–4 to show the order of how long they live, from shortest to longest: beech tree",
+    "a": [
+     "3",
+     "1",
+     "2",
+     "4"
+    ]
+   },
+   {
+    "q": "2. Number the trees from 1–4 to show the order of how long they live, from shortest to longest: ash tree",
+    "a": [
+     "2",
+     "1",
+     "3",
+     "4"
+    ]
+   },
+   {
+    "q": "2. Number the trees from 1–4 to show the order of how long they live, from shortest to longest: oak tree",
+    "a": [
+     "4",
+     "1",
+     "2",
+     "3"
+    ]
+   },
+   {
+    "q": "3. Look at the section called Beech. Find and copy one word that tells us where something lives.",
+    "a": [
+     "woodland",
+     "shadow",
+     "smooth",
+     "roots"
+    ]
+   },
+   {
+    "q": "4. Fill in the missing word: There are many ______ types of trees that appear throughout Britain.",
+    "a": [
+     "different",
+     "tall",
+     "familiar",
+     "green"
+    ]
+   },
+   {
+    "q": "4. Fill in the missing word: They have ______ features that make them easy to identify across the country.",
+    "a": [
+     "familiar",
+     "different",
+     "special",
+     "rough"
+    ]
+   },
+   {
+    "q": "Bonus: What is the name of the famous oak tree in Nottingham?",
+    "a": [
+     "Major Oak",
+     "Royal Oak",
+     "Sessile Oak",
+     "Great Oak"
+    ]
+   },
+   {
+    "q": "Bonus: Which tree has leaves with a distinctive heart shape?",
+    "a": [
+     "lime",
+     "ash",
+     "beech",
+     "alder"
+    ]
+   },
+   {
+    "q": "Bonus: Who might have brought sycamore trees to Britain?",
+    "a": [
+     "the Romans",
+     "the Vikings",
+     "the Victorians",
+     "the Normans"
+    ]
+   }
+  ],
+  "open": [
+   {
+    "q": "5. Name two trees that can grow up to around 40 metres in height.",
+    "starters": "Two trees that can grow to around 40 metres are… and…",
+    "model": "Oak and lime. (Beech trees can also grow to around 40 metres, so any two of oak, lime and beech.)"
+   },
+   {
+    "q": "6. Look at the section called Sycamore. Compare this type of tree to another tree mentioned in the text. How are they similar and different?",
+    "starters": "Sycamore trees are similar to … trees because… / They are different because…",
+    "model": "Sycamore trees are similar to beech trees because both can live to around 400 years old. They are different because the sycamore was not originally native to the UK and has wing-shaped seeds, while the beech is native and casts a huge shadow so that not many plants can grow under it."
+   },
+   {
+    "q": "7. Which tree do you think is the worst type to grow in a park? Explain your answer.",
+    "starters": "I think the … tree is the worst type to grow in a park because…",
+    "model": "I think the alder tree is the worst type to grow in a park because its fruit is dangerous when eaten, and parks are full of children, dogs and other animals. It also grows best in wet, cool places near water, not in a dry park. (The beech could be another good answer, because almost nothing can grow beneath its shadow.)"
+   },
+   {
+    "q": "8. Summarise what you have learnt about alder trees in 30 words or fewer.",
+    "starters": "Alder trees grow… They… Their…",
+    "model": "Alder trees grow in wet, cool places near rivers and lakes. They reach 25–28 metres, live about 60 years, have rough grey bark, cone-like flowers and dangerous fruit."
+   }
+  ],
+  "maths": {
+   "title": "Maths Group 8 · Term 1B Week 1",
+   "unit": "Multiplication and Division",
+   "intro": "This week we finished addition and subtraction and are starting multiplication and division, building on place value and rounding. On Friday there is a mixed times-tables test. The problem-solving sheet is due on Friday 6 November.",
+   "timesTables": [
+    {
+     "q": "6 × 8",
+     "a": 48
+    },
+    {
+     "q": "81 ÷ 9",
+     "a": 9
+    },
+    {
+     "q": "7 × ☐ = 84",
+     "a": 12
+    },
+    {
+     "q": "☐ ÷ 6 = 8",
+     "a": 48
+    },
+    {
+     "q": "11 × 4",
+     "a": 44
+    },
+    {
+     "q": "72 ÷ ☐ = 8",
+     "a": 9
+    },
+    {
+     "q": "☐ × 5 = 45",
+     "a": 9
+    },
+    {
+     "q": "12 × 9",
+     "a": 108
+    },
+    {
+     "q": "64 ÷ 8",
+     "a": 8
+    },
+    {
+     "q": "3 × ☐ = 27",
+     "a": 9
+    },
+    {
+     "q": "120 ÷ 10",
+     "a": 12
+    },
+    {
+     "q": "8 × 7",
+     "a": 56
+    },
+    {
+     "q": "☐ ÷ 4 = 11",
+     "a": 44
+    },
+    {
+     "q": "2 × 12",
+     "a": 24
+    },
+    {
+     "q": "99 ÷ 11",
+     "a": 9
+    },
+    {
+     "q": "12 × ☐ = 96",
+     "a": 8
+    },
+    {
+     "q": "54 ÷ 6",
+     "a": 9
+    },
+    {
+     "q": "5 × 11",
+     "a": 55
+    },
+    {
+     "q": "144 ÷ 12",
+     "a": 12
+    },
+    {
+     "q": "☐ × 9 = 108",
+     "a": 12
+    },
+    {
+     "q": "12 × 4",
+     "a": 48
+    },
+    {
+     "q": "84 ÷ 7",
+     "a": 12
+    },
+    {
+     "q": "28 ÷ 4",
+     "a": 7
+    },
+    {
+     "q": "100 ÷ 10",
+     "a": 10
+    },
+    {
+     "q": "1 × 9",
+     "a": 9
+    },
+    {
+     "q": "☐ ÷ 8 = 6",
+     "a": 48
+    },
+    {
+     "q": "9 × 11",
+     "a": 99
+    },
+    {
+     "q": "88 ÷ 11",
+     "a": 8
+    },
+    {
+     "q": "6 × 12",
+     "a": 72
+    },
+    {
+     "q": "63 ÷ ☐ = 7",
+     "a": 9
+    }
+   ],
+   "sums": [
+    {
+     "a": 44735,
+     "op": "-",
+     "b": 27621,
+     "given": 72365
+    },
+    {
+     "a": 56472,
+     "op": "+",
+     "b": 41653,
+     "given": 14219
+    },
+    {
+     "a": 60407,
+     "op": "+",
+     "b": 72364,
+     "given": 132761
+    }
+   ],
+   "problems": [
+    {
+     "title": "★ Challenge (from the column sums page)",
+     "pic": "🕵️",
+     "text": "Can you explain what mistakes have been made in the three calculations, and can you correct them?",
+     "parts": [
+      {
+       "q": "What mistakes were made, and what are the correct answers?",
+       "type": "text",
+       "model": "1) 44,735 − 27,621: the answer 72,365 is far too big for a subtraction — the columns were added instead of subtracted. The right answer is 17,114. 2) 56,472 + 41,653: the answer 14,219 is smaller than both numbers, so it cannot be an addition — the columns were subtracted. The right answer is 98,125. 3) 60,407 + 72,364: 132,761 is nearly right, but the tens column was done wrongly (0 + 6 = 6, plus the carried 1 = 7). The right answer is 132,771."
+      }
+     ]
+    },
+    {
+     "title": "1. Complete the missing numbers.",
+     "pic": "🔢",
+     "text": "Each calculation uses 24,356. Work out the missing number.",
+     "parts": [
+      {
+       "q": "a) 24,356 + ☐ = 24,656",
+       "type": "number",
+       "answer": 300
+      },
+      {
+       "q": "b) 24,356 − ☐ = 24,306",
+       "type": "number",
+       "answer": 50
+      },
+      {
+       "q": "c) ☐ + 100 = 24,356",
+       "type": "number",
+       "answer": 24256
+      },
+      {
+       "q": "d) ☐ − 200 = 24,356",
+       "type": "number",
+       "answer": 24556
+      },
+      {
+       "q": "e) 2,000 + ☐ = 24,356",
+       "type": "number",
+       "answer": 22356
+      },
+      {
+       "q": "f) ☐ − 3,000 = 24,356",
+       "type": "number",
+       "answer": 27356
+      }
+     ]
+    },
+    {
+     "title": "2. Find the missing numbers.",
+     "pic": "🔍",
+     "text": "Work out the missing number in each calculation.",
+     "parts": [
+      {
+       "q": "a) 8,745 + ☐ = 9,000",
+       "type": "number",
+       "answer": 255
+      },
+      {
+       "q": "b) 15,620 − ☐ = 15,000",
+       "type": "number",
+       "answer": 620
+      },
+      {
+       "q": "c) ☐ + 250 = 8,745",
+       "type": "number",
+       "answer": 8495
+      },
+      {
+       "q": "d) ☐ − 500 = 8,745",
+       "type": "number",
+       "answer": 9245
+      },
+      {
+       "q": "e) 4,500 + ☐ = 15,620",
+       "type": "number",
+       "answer": 11120
+      },
+      {
+       "q": "f) ☐ − 2,500 = 15,620",
+       "type": "number",
+       "answer": 18120
+      }
+     ]
+    },
+    {
+     "title": "3. Challenge yourself!",
+     "pic": "💪",
+     "text": "Work out the missing number in each calculation.",
+     "parts": [
+      {
+       "q": "a) 36,875 + ☐ = 40,000",
+       "type": "number",
+       "answer": 3125
+      },
+      {
+       "q": "b) 52,430 − ☐ = 50,000",
+       "type": "number",
+       "answer": 2430
+      },
+      {
+       "q": "c) ☐ + 1,250 = 36,875",
+       "type": "number",
+       "answer": 35625
+      },
+      {
+       "q": "d) ☐ − 1,000 = 36,875",
+       "type": "number",
+       "answer": 37875
+      },
+      {
+       "q": "e) 12,500 + ☐ = 52,430",
+       "type": "number",
+       "answer": 39930
+      },
+      {
+       "q": "f) ☐ − 5,000 = 52,430",
+       "type": "number",
+       "answer": 57430
+      }
+     ]
+    },
+    {
+     "title": "1. Homework time (word problem)",
+     "pic": "📝",
+     "text": "On Sunday I spent 114 minutes on my art project, and 45 minutes on my numeracy homework. On Thursday evening I spent a total of 86 minutes on my history project and 39 minutes reading.\nWhat is the difference in minutes between the amount of homework I did on Sunday and Thursday evening?",
+     "parts": [
+      {
+       "q": "Difference in minutes",
+       "type": "number",
+       "answer": 34,
+       "hint": "Add up Sunday, add up Thursday, then subtract."
+      }
+     ]
+    },
+    {
+     "title": "2. Dad's truck (word problem)",
+     "pic": "🚚",
+     "text": "Dad drives a truck. Last week he drove 267 kilometres on Monday, 186 on Tuesday and 198 on Wednesday. This week Dad drove 279 kilometres on Monday, 148 on Tuesday and 288 on Wednesday.\nWhat is the difference in kilometres between this week and last week?",
+     "parts": [
+      {
+       "q": "Difference in kilometres",
+       "type": "number",
+       "answer": 64,
+       "hint": "Add up each week first."
+      }
+     ]
+    },
+    {
+     "title": "3. Four watches (word problem)",
+     "pic": "⌚",
+     "text": "One watch costs £1.60 and I bought four.\nIf I had paid with a £20 note, how much change would I have received?",
+     "parts": [
+      {
+       "q": "Change from £20 (write it like 13.60)",
+       "type": "exact",
+       "answer": [
+        "13.60",
+        "£13.60",
+        "13.6",
+        "£13.6"
+       ],
+       "hint": "First work out the cost of four watches."
+      }
+     ]
+    }
+   ]
+  }
  }
 ]

@@ -13,7 +13,7 @@
 | **Основное приложение (для iPad)** | https://homework-3kd.pages.dev | Приватный сайт на Cloudflare Pages за Cloudflare Access (вход по коду на e-mail denis.uchaev@gmail.com, сессия 30 дней). Здесь же лежат PDF листов (`sheets/`) и приложение подгружает их сам. Ребёнок работает здесь. |
 | Публичное зеркало (без листов) | https://temalumio.github.io/homework/ | GitHub Pages. То же приложение, но PDF листов там нет — их нужно прикреплять вручную. |
 | Исходники сайта | GitHub-репозиторий `TemaLumio/homework`, ветка `main` | 4 файла: `index.html`, `weeks.json`, `icon.png`, `robots.txt` (+ этот README). **PDF листов в GitHub не кладём никогда** (публичный репозиторий). |
-| Папка деплоя Cloudflare | в сессии Claude: `<scratchpad>/deploy/` = копия сайта + `sheets/week6-spag.pdf`, `sheets/week6-maths.pdf`; в `weeks.json` у недели добавлено `"sheets": {"R":"sheets/…","M":"sheets/…"}` | Деплой: `CLOUDFLARE_API_TOKEN=… CLOUDFLARE_ACCOUNT_ID=61feea7ed162cfabf755a831038c1edb npx wrangler@3 pages deploy deploy --project-name homework --branch main --commit-dirty=true`. Токен Денис присылает в чат (в README не хранить). Cloudflare Access app id `69ea87ea-0f84-413b-b5d8-b0dfe18093f6`. |
+| Папка деплоя Cloudflare | в сессии Claude: `<scratchpad>/deploy/` = копия сайта + `sheets/<weekId>-spag.pdf`, `sheets/<weekId>-maths.pdf`; в `weeks.json` у недели добавлено `"sheets": {"R":"sheets/…","M":"sheets/…"}` | Деплой: `CLOUDFLARE_API_TOKEN=… CLOUDFLARE_ACCOUNT_ID=61feea7ed162cfabf755a831038c1edb npx wrangler@3 pages deploy deploy --project-name homework --branch main --commit-dirty=true`. Токен Денис присылает в чат (в README не хранить). Cloudflare Access app id `69ea87ea-0f84-413b-b5d8-b0dfe18093f6`. |
 | Версия внутри Claude (запасная) | https://claude.ai/artifact/6gDRydiUFs1Zq7NroMaGiw | То же приложение + проверка почерка Claude, загрузка PDF «For grown-ups», «Send to Dad» через хранилище. Требует входа в аккаунт Дениса → ребёнку не давать. |
 | Рабочий файл этой версии | `/home/claude/spag-week6.html` (в сессии Claude) | Публикуется через Artifact |
 | Школьный портал | https://lumioprivateschool.managebac.com/parent/classes/13166675 (SPAG), `/13166687` (Maths) | Задания появляются как «Spelling Homework» / «Maths Homework» со вложением PDF. **Вложения нельзя скачать автоматически** — только вручную с телефона/компьютера. |
@@ -104,6 +104,11 @@
 
 ### 4.2a. Обязательный отчёт Денису после сборки недели
 После каждой новой недели (и любой правки заданий) писать в чат отдельным блоком **«Что отличается от листа»**: какие вопросы переформулированы, какие добавлены (Bonus), чего нет в приложении (например, рисование), что пересказано. Если отличий нет — так и написать. Без этого блока неделя не считается готовой: родитель должен знать, что именно уйдёт учителю.
+
+### 4.2a-bis. Типы заданий по математике, которые умеет приложение
+- `timesTables`: `{q, a}`; `☐` в `q` = пропущенное число.
+- `sums`: `[a, op, b]` — ребёнок считает сам; **или** `{a, op, b, given}` — на листе уже написан ответ `given`, ребёнок проверяет обратным действием и жмёт «Correct / Incorrect», затем вписывает верный ответ (Term 1B Week 1, стр. 2).
+- `problems[].parts[]`: `type: number` (точное число), `estimate` (округлённая оценка), `exact` (строка/список допустимых строк — для денег и т.п.), `text` (свободный ответ + `model`). Если `title` начинается с цифры или ★ — нумерация листа сохраняется, приложение своей не добавляет.
 
 ### 4.2b. Оригинальный лист в приложении
 Текст листа в приложение не перепечатывается (авторское право — материалы Twinkl и т.п.); вопросы — дословно с листа (см. 4.2a). Лист показывается картинками: на Cloudflare-сайте приложение само скачивает PDF из `W.sheets` при первом открытии, иначе родитель прикрепляет PDF/фото через «📎 Attach the sheet». Страницы (картинка + текстовый слой/OCR) хранятся в IndexedDB устройства (`spag-sheets`, ключ `sheet-<weekId>-R|M`).

@@ -885,14 +885,17 @@ function renderMaths() {
   const sl = $('sumList'); sl.innerHTML = '';
   const calc = (a, op, b) => op === '+' ? a + b : op === '-' ? a - b : op === '×' || op === '*' || op === 'x' ? a * b : a / b;
   const symb = op => ({ '*': '×', 'x': '×', '/': '÷' }[op] || op);
-  (M.sums || []).forEach(([a, op0, b], i) => {
+  (M.sums || []).forEach((item, i) => {
+    const [a, op0, b] = Array.isArray(item) ? item : [item.a, item.op, item.b]; const given = Array.isArray(item) ? null : item.given;
     const op = symb(op0), ans = calc(a, op, b), key = W.id + '-sum' + i, r = (mres().sums || {})[i] || {};
     const w = Math.max(String(a).length, String(b).length);
     const c = document.createElement('div'); c.className = 'card';
     const layout = (op === '+' || op === '-') ? `<div class="colsum"><div>${String(a).padStart(w, ' ').replace(/ /g, '&nbsp;')}</div><div>${op === '-' ? '−' : '+'}${String(b).padStart(w - 1, ' ').replace(/ /g, '&nbsp;')}</div></div>` : `<div class="colsum" style="letter-spacing:.05em"><div style="border:0">${a} ${op} ${b} = ?</div></div>`;
     c.innerHTML = `<div class="row between" style="align-items:flex-start"><h3>${i + 1}.</h3>${layout}<button class="ghost hear">🔊</button></div>
+      ${given != null ? `<p style="margin:0">The answer written on the sheet is <b>${given}</b>. Check it with the inverse operation (${{ '+': 'subtract', '-': 'add', '×': 'divide', '÷': 'multiply' }[op]}) in the box, then decide:</p>` : ''}
       <div class="ink"></div>
-      <div class="row"><span>Answer:</span><input class="num ${r.ok ? 'ok' : r.ok === false ? 'bad' : ''}" inputmode="numeric" value="${r.ans ?? ''}" id="${key}-a"><button class="big chk">Check</button></div>
+      ${given != null ? `<div class="row vrow"><span>Is the sheet's answer right?</span><button class="ghost yes" aria-pressed="${r.verdict === 'correct'}">✓ Correct</button><button class="ghost no" aria-pressed="${r.verdict === 'incorrect'}">✗ Incorrect</button></div><p class="verdict vv">${r.verdict ? (r.verdictOk ? '✓ Right — ' : '✗ Hmm — ') + (given === ans ? 'the sheet\'s answer is correct.' : 'the sheet\'s answer is wrong. Now work out the right answer below.') : ''}</p>` : ''}
+      <div class="row arow" ${given != null && !r.verdict ? 'hidden' : ''}><span>${given != null ? 'The right answer:' : 'Answer:'}</span><input class="num ${r.ok ? 'ok' : r.ok === false ? 'bad' : ''}" inputmode="numeric" value="${r.ans ?? ''}" id="${key}-a"><button class="big chk">Check</button></div>
       <div class="row inv" ${r.ok ? '' : 'hidden'}><span>Check with the inverse: <b class="invq"></b></span><input class="num" inputmode="numeric" id="${key}-i"><button class="ghost chki">Check</button></div>
       <p class="verdict v"></p>`;
     inks[key] = makeInk(c.querySelector('.ink'), key, { grid: true, cell: 80, prefill: (op === '+' || op === '-') ? { a, op, b } : null }); c.querySelector('.ink-canvas').style.height = '480px';
@@ -900,12 +903,23 @@ function renderMaths() {
     const inp = c.querySelector(`#${key}-a`), v = c.querySelector('.v'), inv = c.querySelector('.inv');
     const invQ = { '+': `${ans} − ${b}`, '-': `${ans} + ${b}`, '×': `${ans} ÷ ${b}`, '÷': `${ans} × ${b}` }[op], invA = a;
     c.querySelector('.invq').textContent = invQ + ' = ?';
+    if (given != null) {
+      const vv = c.querySelector('.vv'), arow = c.querySelector('.arow'), yes = c.querySelector('.yes'), no = c.querySelector('.no');
+      const decide = verdict => {
+        const verdictOk = (verdict === 'correct') === (given === ans);
+        yes.setAttribute('aria-pressed', verdict === 'correct'); no.setAttribute('aria-pressed', verdict === 'incorrect');
+        vv.textContent = (verdictOk ? '✓ Right — ' : '✗ Hmm — ') + (given === ans ? "the sheet's answer is correct." : "the sheet's answer is wrong. Now work out the right answer below."); vv.className = 'verdict vv ' + (verdictOk ? 'ok' : 'bad');
+        say(verdictOk ? 'Right!' : 'Hmm, check it again with the inverse.', 1); arow.hidden = false;
+        const all = mres().sums || {}; all[i] = { ...(all[i] || {}), verdict, verdictOk }; saveM({ sums: all });
+      };
+      yes.onclick = () => decide('correct'); no.onclick = () => decide('incorrect');
+    }
     c.querySelector('.chk').onclick = () => {
       const val = num(inp.value); const ok = val != null && Math.abs(val - ans) < 0.001;
       inp.className = 'num ' + (ok ? 'ok' : 'bad');
       v.textContent = ok ? '✓ Correct! Now check it with the inverse operation.' : (val == null ? 'Type your answer first.' : 'Not quite. Check your columns and carrying, then try again.');
       v.className = 'verdict v ' + (ok ? 'ok' : 'bad'); inv.hidden = !ok; say(ok ? 'Correct!' : 'Not quite, try again.', 1);
-      const all = mres().sums || {}; all[i] = { ans: inp.value, ok, tries: (all[i]?.tries || 0) + 1 }; saveM({ sums: all });
+      const all = mres().sums || {}; all[i] = { ...(all[i] || {}), ans: inp.value, ok, tries: (all[i]?.tries || 0) + 1 }; saveM({ sums: all });
     };
     c.querySelector('.chki').onclick = () => { const val = num(c.querySelector(`#${key}-i`).value); const ok = val === invA; v.textContent = ok ? `✓ ${invQ} = ${invA}. The inverse checks out!` : `Hmm, ${invQ} should give you back ${a}. Try again.`; v.className = 'verdict v ' + (ok ? 'ok' : 'bad'); say(ok ? 'The inverse checks out!' : 'Try again.', 1); const all = mres().sums || {}; all[i] = { ...(all[i] || {}), inv: ok }; saveM({ sums: all }); };
     sl.appendChild(c);
@@ -915,7 +929,7 @@ function renderMaths() {
   (M.problems || []).forEach((pr, i) => {
     const key = W.id + '-prob' + i, saved = (mres().problems || {})[i] || {};
     const c = document.createElement('div'); c.className = 'card';
-    c.innerHTML = `<div class="row between" style="align-items:flex-start"><div class="row"><span class="pic" style="font-size:1.8rem">${esc(pr.pic || '🧮')}</span><h3>${i + 1}. ${esc(pr.title)}</h3></div><button class="ghost hear">🔊</button></div>
+    c.innerHTML = `<div class="row between" style="align-items:flex-start"><div class="row"><span class="pic" style="font-size:1.8rem">${esc(pr.pic || '🧮')}</span><h3>${/^[\d★]/.test(pr.title) ? '' : (i + 1) + '. '}${esc(pr.title)}</h3></div><button class="ghost hear">🔊</button></div>
       <p style="white-space:pre-line">${esc(pr.text)}</p><div class="ink"></div><div class="parts" style="display:grid;gap:10px"></div>`;
     const nums = [...new Set((pr.text + ' ' + pr.parts.map(x => x.q).join(' ')).match(/\d[\d,]*\d|\d/g) || [])].map(n => n.replace(/,/g, ''));
     const ink = makeInk(c.querySelector('.ink'), key, { grid: true, cell: 80, stamps: [...nums, '+', '−', '×', '÷', '='] }); inks[key] = ink; c.querySelector('.ink-canvas').style.height = '480px';
@@ -1028,11 +1042,11 @@ function buildMathsPdf(name) {
   const sumsInApp = Object.keys(m.sums || {}).length || (M.sums || []).some((x, i) => inks[W.id + '-sum' + i]?.hasInk());
   if (ph.sums) { gap(2); h('Written calculations', 13, true); paper('M:sums'); }
   if ((M.sums || []).length && (!ph.sums || sumsInApp)) { gap(2); if (!ph.sums) h('Written calculations', 13, true); else h('Also done in the app:', 10, true);
-    M.sums.forEach(([a, op, b], i) => { const r = (m.sums || {})[i]; h(`${i + 1}. ${a} ${op} ${b} = ${r?.ans || '…'} ${r ? (r.ok ? '✓' : '✗') : ''}${r?.inv ? ' (inverse checked)' : ''}`, 10); img(inks[W.id + '-sum' + i], 0.6); }); }
+    M.sums.forEach((item, i) => { const [a, op, b] = Array.isArray(item) ? item : [item.a, item.op, item.b]; const given = Array.isArray(item) ? null : item.given; const r = (m.sums || {})[i]; h(given != null ? `${i + 1}. ${a} ${op} ${b} = ${given} (on the sheet) — marked ${r?.verdict || '…'} ${r?.verdict ? (r.verdictOk ? '✓' : '✗') : ''}; right answer: ${r?.ans || '…'} ${r?.ans ? (r.ok ? '✓' : '✗') : ''}${r?.inv ? ' (inverse checked)' : ''}` : `${i + 1}. ${a} ${op} ${b} = ${r?.ans || '…'} ${r ? (r.ok ? '✓' : '✗') : ''}${r?.inv ? ' (inverse checked)' : ''}`, 10); img(inks[W.id + '-sum' + i], 0.6); }); }
   const probInApp = Object.values(m.problems || {}).some(o => Object.keys(o).length) || (M.problems || []).some((x, i) => inks[W.id + '-prob' + i]?.hasInk());
   if (ph.problems) { gap(2); h('Problem solving and reasoning', 13, true); paper('M:problems'); }
   if ((M.problems || []).length && (!ph.problems || probInApp)) { gap(2); if (!ph.problems) h('Problem solving and reasoning', 13, true); else h('Also done in the app:', 10, true);
-    M.problems.forEach((pr, i) => { h(`${i + 1}. ${pr.title}`, 11, true); h(pr.text, 9); img(inks[W.id + '-prob' + i]);
+    M.problems.forEach((pr, i) => { h(`${/^[\d★]/.test(pr.title) ? '' : (i + 1) + '. '}${pr.title}`, 11, true); h(pr.text, 9); img(inks[W.id + '-prob' + i]);
       const hasInkP = !!inks[W.id + '-prob' + i]?.hasInk();
       pr.parts.forEach((pt, j) => { const sv = ((m.problems || {})[i] || {})[j] || {}; const shown = sv.ans ? sv.ans : (pt.type === 'text' && hasInkP ? '(see working above)' : '(no answer)'); h(`${pt.q}: ${shown}${pt.type !== 'text' ? (sv.ok ? ' ✓' : sv.ans ? ' ✗' : '') : ''}`, 10); if (sv.fb) h('Feedback: ' + sv.fb, 9); }); gap(2); }); }
   gap(4); h('Message for the teacher (copy and paste):', 10, true); h(`Dear Ms Christodoulou, please find attached ${name || 'my child'}'s completed maths homework for ${W.title}. Kind regards`, 9);
