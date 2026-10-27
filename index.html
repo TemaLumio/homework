@@ -47,8 +47,8 @@
   }
   .wrap { max-width: 640px; margin: 0 auto; display: grid; gap: 14px; }
   /* Big screens (iPad 11–13" landscape & portrait): scale everything up and widen */
-  @media (min-width: 900px) { html { font-size: 19px; } .wrap { max-width: 980px; gap: 18px; } .card { padding: 22px; } .words { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); } .tt { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); } .ink-canvas:not([style*='480px']) { height: 16rem !important; } }
-  @media (min-width: 1200px) { html { font-size: 21px; } .wrap { max-width: 1120px; } .ink-canvas:not([style*='480px']) { height: 18rem !important; } }
+  @media (min-width: 900px) { html { font-size: 19px; } .wrap { max-width: 980px; gap: 18px; } .card { padding: 22px; } .words { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); } .tt { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); } .ink-canvas:not([style*='480px']):not(.page-ink) { height: 16rem !important; } }
+  @media (min-width: 1200px) { html { font-size: 21px; } .wrap { max-width: 1120px; } .ink-canvas:not([style*='480px']):not(.page-ink) { height: 18rem !important; } }
   /* Scroll helpers: progress bar + up/down buttons */
   #scrollbar { position: fixed; top: 0; left: 0; height: 5px; width: 0; background: var(--accent); z-index: 50; transition: width .1s; }
   #scrollBtns { position: fixed; right: max(12px, env(safe-area-inset-right, 0px)); bottom: max(16px, env(safe-area-inset-bottom, 0px)); display: grid; gap: 8px; z-index: 40; }
@@ -64,7 +64,7 @@
   .chip { font: 700 .9rem var(--body); border: 2px solid var(--line); border-radius: 999px; padding: 6px 12px; background: var(--paper); color: var(--fg); cursor: pointer; }
   .chip[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
   .tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-  @media (max-width: 520px) { .tabs { grid-template-columns: 1fr 1fr; } .tab { font-size: 1rem; padding: 10px; } .ink-canvas { height: 340px !important; } }
+  @media (max-width: 520px) { .tabs { grid-template-columns: 1fr 1fr; } .tab { font-size: 1rem; padding: 10px; } .ink-canvas:not(.page-ink) { height: 340px !important; } }
   .tt { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
   .tt label { display: flex; align-items: center; gap: 6px; font: 700 1.05rem var(--display); background: var(--bg); border: 2px solid var(--line); border-radius: 12px; padding: 6px 8px; font-variant-numeric: tabular-nums; }
   .tt label span { flex: 1; }
@@ -466,7 +466,7 @@ function setupSheet(subj) {
     if (arr && arr.length) {
       arr.forEach((pg, i) => {
         const src = typeof pg === 'string' ? pg : pg.img, text = (typeof pg === 'string' ? '' : pg.text) || '';
-        const im = document.createElement('img'); im.src = src; im.alt = `Sheet page ${i + 1}`; im.style.cssText = 'width:100%;border:2px solid var(--line);border-radius:12px;background:#fff'; pages.appendChild(im);
+        const wrap = document.createElement('div'); wrap.dataset.page = i + 1; pages.appendChild(wrap); const pk = `${W.id}-pg${subj}${i + 1}`; inks[pk] = makeInk(wrap, pk, { overlay: src, pageNo: i + 1 });
         if (subj === 'R' && text.split(/\s+/).length > 40) {
           const box = document.createElement('div'); box.className = 'card'; box.style.gap = '8px';
           box.innerHTML = `<div class="row between"><b>Page ${i + 1}</b><div class="row"><button class="ghost rd">🔊 Read it to me</button><button class="ghost st">⏹</button><button class="ghost me">🎤 I'll read it</button></div></div>
@@ -500,14 +500,14 @@ async function mountSheetPages(subj) { // show the relevant sheet page(s) above 
   document.querySelectorAll(`[data-sheetpages^="${subj}:"]`).forEach(el => {
     const sec = el.dataset.sheetpages.split(':')[1]; el.innerHTML = '';
     const nums = map[sec] || []; if (!arr || !nums.length) return;
-    nums.forEach(n => { const pg = arr[n - 1]; if (!pg) return; const im = document.createElement('img'); im.src = typeof pg === 'string' ? pg : pg.img; im.alt = `Sheet page ${n}`; im.style.cssText = 'width:100%;border:2px solid var(--line);border-radius:12px;background:#fff'; el.appendChild(im); });
+    nums.forEach(n => { const pg = arr[n - 1]; if (!pg) return; const wrap = document.createElement('div'); wrap.dataset.page = n; el.appendChild(wrap); const pk = `${W.id}-pg${subj}${n}`; inks[pk] = makeInk(wrap, pk, { overlay: typeof pg === 'string' ? pg : pg.img, pageNo: n }); });
   });
   if (subj === 'M' && Object.keys(map).length) { // maths: the pages are shown above their own sections, so the full gallery is hidden
     const mounted = [...document.querySelectorAll('[data-sheetpages^="M:"] img')].length > 0;
-    [...$('sheetMPages').querySelectorAll('img')].forEach(im => { im.style.display = mounted ? 'none' : ''; });
+    [...$('sheetMPages').querySelectorAll('[data-page]')].forEach(w => { w.style.display = mounted ? 'none' : ''; });
   }
   if (subj === 'R' && map.text && map.text.length) { // in the Read tab, show only the text pages (questions page lives in the Questions tab)
-    const pages = $('sheetRPages'); [...pages.querySelectorAll('img')].forEach((im, i) => { if (!map.text.includes(i + 1)) im.style.display = 'none'; });
+    const pages = $('sheetRPages'); [...pages.querySelectorAll('[data-page]')].forEach(w => { if (!map.text.includes(+w.dataset.page)) w.style.display = 'none'; });
     [...pages.querySelectorAll('.card')].forEach(c => { const pn = +(c.querySelector('b')?.textContent.replace(/\D/g, '') || 0); if (pn && !map.text.includes(pn)) c.style.display = 'none'; });
   }
 }
@@ -518,6 +518,12 @@ const PHOTO_SECTIONS = { 'S:spelling': 'Spelling', 'R:questions': 'Reading quest
 const photoKey = sec => `photos-${W.id}-${sec}`;
 let photoCache = {}; // sec -> [dataURL]; filled by mountPhotos so the report builders can stay synchronous
 const photosOf = sec => photoCache[sec] || [];
+function sheetInk(sec) { // the sheet pages of this section that have handwriting on them (R:questions covers the text pages too)
+  const [subj, part] = sec.split(':'); const map = (W.sheetMap || {})[subj] || {}; let nums = map[part] || []; if (sec === 'R:questions') nums = [...(map.text || []), ...nums];
+  return [...new Set(nums)].map(n => ({ n, ink: inks[`${W.id}-pg${subj}${n}`] })).filter(x => x.ink && x.ink.hasInk());
+}
+const paperN = sec => photosOf(sec).length + sheetInk(sec).length;
+const paperLabel = sec => [photosOf(sec).length ? 'photo attached' : '', sheetInk(sec).length ? 'written on the sheet' : ''].filter(Boolean).join(', ');
 async function shrinkImage(file, max = 1600) {
   const url = URL.createObjectURL(file);
   try {
@@ -762,6 +768,15 @@ function makeInk(host, key, opts = {}) {
   let pendingStamp = null;
   host.innerHTML = (opts.stamps && opts.stamps.length ? `<div class="row" style="gap:6px;margin-bottom:6px"><span class="muted" style="font-size:.9rem">Tap a number, then tap a square:</span>${opts.stamps.map(t => `<button class="ghost stamp" style="padding:6px 10px;font-family:var(--display);font-size:1.05rem" data-s="${esc(t)}">${esc(t)}</button>`).join('')}</div>` : '') + `<div class="row between"><span class="muted" style="font-size:.9rem">✍️ ${opts.prefill ? 'The sum is printed in the squares — write your answer under the line' : opts.grid ? 'Work it out here — one digit per square' : 'Write here with your pencil'}</span><div class="row"><button class="ghost pen" aria-pressed="true" style="padding:6px 10px">✏️</button><button class="ghost erase" aria-pressed="false" style="padding:6px 10px">🧽</button><button class="ghost undo" style="padding:6px 10px">↶</button><button class="ghost clear" style="padding:6px 10px">Clear</button></div></div>
     <canvas class="ink-canvas" style="width:100%;height:200px;border:2px dashed var(--line);border-radius:12px;background:var(--paper);touch-action:none;display:block"></canvas>`;
+  let pageImg = null;
+  if (opts.overlay) { // writing directly on a page of the original sheet: transparent canvas over the image, drawing only while "Write on this page" is on
+    host.innerHTML = `<div class="row between" style="margin-bottom:4px"><span class="muted" style="font-size:.9rem">📄 Sheet page ${opts.pageNo || ''}</span><div class="row"><button class="ghost wr" aria-pressed="false" style="padding:6px 10px">✏️ Write on this page</button></div></div>
+      <div class="row tools" hidden style="gap:6px;margin-bottom:4px"><button class="ghost pen" aria-pressed="true" style="padding:6px 10px">✏️</button><button class="ghost erase" aria-pressed="false" style="padding:6px 10px">🧽</button><button class="ghost undo" style="padding:6px 10px">↶</button><button class="ghost clear" style="padding:6px 10px">Clear</button></div>
+      <div style="position:relative"><img src="${opts.overlay}" alt="Sheet page ${opts.pageNo || ''}" style="width:100%;display:block;border:2px solid var(--line);border-radius:12px;background:#fff"><canvas class="ink-canvas page-ink" style="position:absolute;inset:0;width:100%;height:100%;touch-action:none;pointer-events:none;border-radius:12px"></canvas></div>`;
+    pageImg = host.querySelector('img');
+    const wr = host.querySelector('.wr'), tools = host.querySelector('.tools'), pc = host.querySelector('canvas');
+    wr.onclick = () => { const on = wr.getAttribute('aria-pressed') !== 'true'; wr.setAttribute('aria-pressed', on); wr.style.background = on ? 'var(--sun-soft)' : ''; wr.textContent = on ? '✅ Done writing' : '✏️ Write on this page'; tools.hidden = !on; pc.style.pointerEvents = on ? 'auto' : 'none'; pc.style.outline = on ? '3px solid var(--sun)' : ''; };
+  }
   const cv = host.querySelector('canvas'), ctx = cv.getContext('2d');
   let strokes = []; try { strokes = JSON.parse(localStorage.getItem('spag-ink-' + key) || '[]'); } catch (e) {}
   let erasing = false, cur = null, lastPen = 0;
@@ -780,7 +795,8 @@ function makeInk(host, key, opts = {}) {
     // background: squared grid for maths, ruled lines for writing
     ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--line'); ctx.lineWidth = 1;
     opts._cell = effCell(opts, r.width);
-    if (opts.grid) { const cell = opts._cell; ctx.globalAlpha = 0.7; for (let x = cell; x < r.width; x += cell) { ctx.beginPath(); ctx.moveTo(x + .5, 0); ctx.lineTo(x + .5, r.height); ctx.stroke(); } for (let y = cell; y < r.height; y += cell) { ctx.beginPath(); ctx.moveTo(0, y + .5); ctx.lineTo(r.width, y + .5); ctx.stroke(); } ctx.globalAlpha = 1; }
+    if (opts.overlay) { /* the page itself is the background */ }
+    else if (opts.grid) { const cell = opts._cell; ctx.globalAlpha = 0.7; for (let x = cell; x < r.width; x += cell) { ctx.beginPath(); ctx.moveTo(x + .5, 0); ctx.lineTo(x + .5, r.height); ctx.stroke(); } for (let y = cell; y < r.height; y += cell) { ctx.beginPath(); ctx.moveTo(0, y + .5); ctx.lineTo(r.width, y + .5); ctx.stroke(); } ctx.globalAlpha = 1; }
     else for (let y = 40; y < r.height; y += 40) { ctx.beginPath(); ctx.moveTo(8, y); ctx.lineTo(r.width - 8, y); ctx.stroke(); }
     ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     for (const s of strokes) {
@@ -809,6 +825,12 @@ function makeInk(host, key, opts = {}) {
   return {
     hasInk: () => strokes.some(s => s.t === 's' || (!s.e && s.p.length > 1)),
     toImage: () => { // white background, for the PDF; independent of whether the canvas is currently visible
+      if (opts.overlay && pageImg) { // the sheet page with the handwriting composed on top (eraser only erases the handwriting)
+        const Wn = Math.min(1400, pageImg.naturalWidth || 1200), Hn = Math.round(Wn * (pageImg.naturalHeight || 1700) / (pageImg.naturalWidth || 1200));
+        const lay = document.createElement('canvas'); lay.width = Wn; lay.height = Hn; const lc = lay.getContext('2d'); lc.lineCap = 'round'; lc.lineJoin = 'round'; const k = Wn / Math.max(1, (cv.getBoundingClientRect().width || lastRect.width));
+        for (const s of strokes) { if (s.t === 's') continue; lc.globalCompositeOperation = s.e ? 'destination-out' : 'source-over'; lc.strokeStyle = s.c || '#1b2a4a'; lc.lineWidth = (s.e ? 24 : 2.6) * k; lc.beginPath(); s.p.forEach(([x, y], i) => { i ? lc.lineTo(x * Wn, y * Hn) : lc.moveTo(x * Wn, y * Hn); }); lc.stroke(); }
+        const out = document.createElement('canvas'); out.width = Wn; out.height = Hn; const c = out.getContext('2d'); c.fillStyle = '#fff'; c.fillRect(0, 0, Wn, Hn); try { c.drawImage(pageImg, 0, 0, Wn, Hn); } catch (e) {} c.drawImage(lay, 0, 0); return out;
+      }
       const rr = cv.getBoundingClientRect(); const r = (rr.width > 0 && rr.height > 0) ? rr : lastRect; const out = document.createElement('canvas'), d = 2; out.width = Math.round(r.width * d); out.height = Math.round(r.height * d);
       const c = out.getContext('2d'); c.fillStyle = '#fff'; c.fillRect(0, 0, out.width, out.height); c.scale(d, d); c.lineCap = 'round'; c.lineJoin = 'round';
       opts._cell = effCell(opts, r.width);
@@ -976,7 +998,7 @@ function mathsSummary() {
   const sums = Object.values(m.sums || {}); out.push(`Column sums: ${sums.filter(x => x.ok).length} / ${(M.sums || []).length} correct (${sums.filter(x => x.inv).length} checked with the inverse)`);
   let pn = 0, pok = 0; (M.problems || []).forEach((pr, i) => pr.parts.forEach((pt, j) => { if (pt.type !== 'text') { pn++; if ((m.problems?.[i] || {})[j]?.ok) pok++; } }));
   out.push(`Problem answers: ${pok} / ${pn} correct`);
-  const tag = (i, sec, inApp) => { const n = photosOf(sec).length; if (!n) return; out[i] = inApp ? out[i] + ' + done on paper (photo attached)' : out[i].replace(/:.*$/, ': done on paper (photo attached)'); };
+  const tag = (i, sec, inApp) => { const n = paperN(sec); if (!n) return; out[i] = inApp ? out[i] + ` + done on paper (${paperLabel(sec)})` : out[i].replace(/:.*$/, `: done on paper (${paperLabel(sec)})`); };
   tag(0, 'M:tt', m.tt?.score != null); tag(1, 'M:sums', sums.length || (M.sums || []).some((x, i) => inks[W.id + '-sum' + i]?.hasInk())); tag(2, 'M:problems', pok || Object.values(m.problems || {}).some(o => Object.keys(o).length) || (M.problems || []).some((x, i) => inks[W.id + '-prob' + i]?.hasInk()));
   return out;
 }
@@ -1003,15 +1025,18 @@ function newDoc() {
   const img = (ink, frac = 1) => { if (!ink?.hasInk()) return false; const im = ink.toImage(); if (!(im.width > 0 && im.height > 0)) return false; const hmm = Wd * frac * im.height / im.width; if (y + hmm > 285) { doc.addPage(); y = 18; } doc.addImage(im.toDataURL('image/jpeg', 0.85), 'JPEG', L, y, Wd * frac, hmm); y += hmm + 2; return true; };
   const gap = n => { y += n; };
   const pic = (src, frac = 1) => { try { const p = doc.getImageProperties(src); let wmm = Wd * frac, hmm = wmm * p.height / p.width; if (hmm > 250) { wmm = wmm * 250 / hmm; hmm = 250; } if (y + hmm > 285) { doc.addPage(); y = 18; } doc.addImage(src, 'JPEG', L, y, wmm, hmm); y += hmm + 4; return true; } catch (e) { return false; } };
-  const paper = (sec, label) => { const ph = photosOf(sec); if (!ph.length) return false; h(`${label || 'Done on paper'} — photo${ph.length > 1 ? 's' : ''} of the completed page:`, 10, true); ph.forEach(p => pic(p)); gap(2); return true; };
+  const paper = (sec, label) => { const ph = photosOf(sec), si = sheetInk(sec); if (!ph.length && !si.length) return false;
+    if (ph.length) { h(`${label || 'Done on paper'} — photo${ph.length > 1 ? 's' : ''} of the completed page:`, 10, true); ph.forEach(p => pic(p)); }
+    if (si.length) { h(`${label || 'Done on the sheet'} — written on the sheet page${si.length > 1 ? 's' : ''} ${si.map(x => x.n).join(', ')}:`, 10, true); si.forEach(x => pic(x.ink.toImage().toDataURL('image/jpeg', 0.85))); }
+    gap(2); return true; };
   return { doc, h, img, gap, pic, paper };
 }
 function buildSpagPdf(name) {
-  const { doc, h, img, gap, paper } = newDoc(); const { r } = summary(); const phS = photosOf('S:spelling').length, phR = photosOf('R:questions').length;
+  const { doc, h, img, gap, paper } = newDoc(); const { r } = summary(); const phS = paperN('S:spelling'), phR = paperN('R:questions'), lbR = paperLabel('R:questions');
   const sheetQ = (W.quiz || []).map((q, i) => ({ q, i })).filter(x => !/^bonus:/i.test(x.q.q));
   const qa = r.quizAnswers || {}; const answered = sheetQ.filter(x => qa[x.i]); const qok = answered.filter(x => qa[x.i].ok).length;
   const lines = [`Spelling test (${W.words.length} words): ${r.spellBest != null ? r.spellBest + ' / ' + W.words.length : phS ? 'done on paper (photo attached)' : 'not taken yet'}${r.spellBest != null && phS ? ' + practice on paper (photo attached)' : ''}`, `Reading questions ${sheetQ.length ? '1–' + sheetQ.length : ''}: ${answered.length ? qok + ' / ' + sheetQ.length + ' correct' : 'not answered yet'}`];
-  if (phR) { const k = lines.findIndex(l => l.startsWith('Reading questions')); const inApp = answered.length || Object.keys(r.answers || {}).length || (W.open || []).some((t, i) => inks[W.id + '-' + i]?.hasInk()); lines[k] = inApp ? lines[k] + ' + done on paper (photo attached)' : `Reading questions ${sheetQ.length ? '1–' + sheetQ.length : ''}: done on paper (photo attached)`; }
+  if (phR) { const k = lines.findIndex(l => l.startsWith('Reading questions')); const inApp = answered.length || Object.keys(r.answers || {}).length || (W.open || []).some((t, i) => inks[W.id + '-' + i]?.hasInk()); lines[k] = inApp ? lines[k] + ` + done on paper (${lbR})` : `Reading questions ${sheetQ.length ? '1–' + sheetQ.length : ''}: done on paper (${lbR})`; }
   h(`SPAG homework — ${W.title}`, 18, true); h(`${name ? name + ' · ' : ''}${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`, 11); gap(2);
   h('Results', 13, true); lines.forEach(l => h('• ' + l));
   if ((r.spellWrong || []).length) h('• Spelling words to practise: ' + r.spellWrong.join(', '));
@@ -1033,7 +1058,7 @@ function buildSpagPdf(name) {
   return { blob: doc.output('blob'), fname: `SPAG ${W.title} ${dateStamp()}${name ? ' ' + pdfSafe(name) : ''}.pdf`, lines, subject: 'SPAG' };
 }
 function buildMathsPdf(name) {
-  const { doc, h, img, gap, paper } = newDoc(); const M = W.maths, m = mres(); const lines = mathsSummary(); const ph = { tt: photosOf('M:tt').length, sums: photosOf('M:sums').length, problems: photosOf('M:problems').length };
+  const { doc, h, img, gap, paper } = newDoc(); const M = W.maths, m = mres(); const lines = mathsSummary(); const ph = { tt: paperN('M:tt'), sums: paperN('M:sums'), problems: paperN('M:problems') };
   h(`Maths homework — ${M.title || W.title}`, 18, true); h(`${name ? name + ' · ' : ''}${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`, 11); gap(2);
   h('Results', 13, true); lines.forEach(l => h('• ' + l));
   if (m.tt?.wrong?.length) h('• Times tables to practise: ' + m.tt.wrong.join('; '), 9);
@@ -1055,14 +1080,14 @@ function buildMathsPdf(name) {
 document.querySelector('.tab[data-tab="report"]').addEventListener('click', refreshRecorded);
 $('childName').addEventListener('change', e => { try { localStorage.setItem('spag-name', e.target.value); } catch (err) {} });
 function recordedSummary() {
-  const r = results(), m = r.maths || {}; const inkN = Object.keys(inks).filter(k => k.startsWith(W.id) && inks[k].hasInk()).length;
+  const r = results(), m = r.maths || {}; const inkN = Object.keys(inks).filter(k => k.startsWith(W.id) && !k.startsWith(W.id + '-pg') && inks[k].hasInk()).length; const pgN = Object.keys(inks).filter(k => k.startsWith(W.id + '-pg') && inks[k].hasInk()).length;
   const parts = [];
   parts.push(`Spelling test: ${r.spellBest != null ? r.spellBest + '/' + W.words.length : '—'}`);
   parts.push(`Reading quiz: ${r.quizBest ? r.quizBest.score + '/' + r.quizBest.n : '—'}`);
   parts.push(`Written answers: ${Object.keys(r.answers || {}).length}`);
   if (W.maths) { parts.push(`Times tables: ${m.tt?.score != null ? m.tt.score + '/' + m.tt.n : '—'}`); parts.push(`Sums checked: ${Object.keys(m.sums || {}).length}`); parts.push(`Problem answers: ${Object.values(m.problems || {}).reduce((n, o) => n + Object.keys(o).length, 0)}`); }
-  parts.push(`Handwriting boxes used: ${inkN}`); const phN = Object.values(photoCache).reduce((n, a) => n + a.length, 0); parts.push(`Photos of paper work: ${phN}`);
-  const empty = r.spellBest == null && !r.quizBest && !Object.keys(r.answers || {}).length && m.tt?.score == null && !Object.keys(m.sums || {}).length && !inkN && !phN;
+  parts.push(`Handwriting boxes used: ${inkN}`); const phN = Object.values(photoCache).reduce((n, a) => n + a.length, 0); parts.push(`Photos of paper work: ${phN}`); parts.push(`Sheet pages written on: ${pgN}`);
+  const empty = r.spellBest == null && !r.quizBest && !Object.keys(r.answers || {}).length && m.tt?.score == null && !Object.keys(m.sums || {}).length && !inkN && !phN && !pgN;
   return { text: 'Recorded in this app on this iPad: ' + parts.join(' · '), empty };
 }
 function refreshRecorded() { const el = $('recorded'); if (!el) return; const { text, empty } = recordedSummary(); el.innerHTML = esc(text) + (empty ? '\n\n⚠️ Nothing is recorded here yet. Results live in the copy of the app where the work was done: if you solved in Safari, make the PDF in Safari; if from the Home Screen icon, make it there. Also press Check after each answer so it is saved.' : ''); el.style.borderLeft = empty ? '4px solid var(--bad)' : ''; }
