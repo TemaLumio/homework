@@ -907,6 +907,7 @@ function renderMaths() {
   $('ttReset').onclick = () => { grid.querySelectorAll('input').forEach(x => x.value = ''); grid.querySelectorAll('label').forEach(l => l.classList.remove('ok', 'bad')); $('ttVerdict').textContent = ''; ttStart = null; clearInterval(ttTimer); $('mttTimer').textContent = ''; };
   // --- column sums
   const sl = $('sumList'); sl.innerHTML = '';
+  { const hasSums = (M.sums || []).length > 0, st = document.querySelector('.sub[data-sub="msums"]'), pt = document.querySelector('.sub[data-sub="mprob"]'); if (st) st.hidden = !hasSums; if (pt) pt.textContent = hasSums ? '3 · Problems' : '2 · Problems'; if (!hasSums && st && st.getAttribute('aria-selected') === 'true') document.querySelector('.sub[data-sub="mtt"]').click(); }
   const calc = (a, op, b) => op === '+' ? a + b : op === '-' ? a - b : op === '×' || op === '*' || op === 'x' ? a * b : a / b;
   const symb = op => ({ '*': '×', 'x': '×', '/': '÷' }[op] || op);
   (M.sums || []).forEach((item, i) => {
@@ -966,6 +967,14 @@ function renderMaths() {
         const ta = d.querySelector('textarea'), fb = d.querySelector('.feedback'), md = d.querySelector('.model');
         ta.addEventListener('change', () => { const all = mres().problems || {}; all[i] = { ...(all[i] || {}), [j]: { ...((all[i] || {})[j] || {}), ans: ta.value.trim() } }; saveM({ problems: all }); });
         d.querySelector('.show').onclick = () => { md.hidden = false; md.textContent = pt.model || ''; say(pt.model || '', 0.9); };
+      } else if (pt.type === 'choice') { // pick one of a few options (e.g. <, > or =)
+        d.innerHTML = `<div><b>${esc(pt.q)}</b>${pt.hint ? `<br><span class="muted" style="font-size:.9rem">${esc(pt.hint)}</span>` : ''}<div class="row" style="gap:8px;margin-top:6px;flex-wrap:wrap">${(pt.options || []).map(o => `<button class="ghost copt" style="font-size:1.25rem;min-width:64px;padding:8px 14px" aria-pressed="${sv.ans === o}">${esc(o)}</button>`).join('')}</div><p class="verdict v ${sv.ok ? 'ok' : sv.ok === false ? 'bad' : ''}">${sv.ok ? '✓ Correct!' : sv.ok === false ? '✗ Not quite — try again.' : ''}</p></div>`;
+        const v = d.querySelector('.v');
+        d.querySelectorAll('.copt').forEach(b => b.onclick = () => {
+          const val = b.textContent, ok = val === String(pt.answer); d.querySelectorAll('.copt').forEach(x => x.setAttribute('aria-pressed', x === b));
+          v.textContent = ok ? '✓ Correct!' : '✗ Not quite — look at the pattern again.'; v.className = 'verdict v ' + (ok ? 'ok' : 'bad'); say(ok ? 'Correct!' : 'Not quite, try again.', 1);
+          const all = mres().problems || {}; all[i] = { ...(all[i] || {}), [j]: { ans: val, ok, tries: ((all[i] || {})[j]?.tries || 0) + 1 } }; saveM({ problems: all });
+        });
       } else if (pt.type === 'exact') {
         d.innerHTML = `<div class="row"><span style="flex:1 1 200px"><b>${esc(pt.q)}</b>${pt.hint ? `<br><span class="muted" style="font-size:.9rem">${esc(pt.hint)}</span>` : ''}</span><input class="num ${sv.ok ? 'ok' : sv.ok === false ? 'bad' : ''}" style="width:180px" value="${esc(sv.ans ?? '')}" id="${key}-${j}"><button class="big chk">Check</button></div><p class="verdict v"></p>`;
         const inp = d.querySelector('input'), v = d.querySelector('.v');
@@ -1001,8 +1010,8 @@ function mathsSummary() {
   let pn = 0, pok = 0; (M.problems || []).forEach((pr, i) => pr.parts.forEach((pt, j) => { if (pt.type !== 'text') { pn++; if ((m.problems?.[i] || {})[j]?.ok) pok++; } }));
   out.push(`Problem answers: ${pok} / ${pn} correct`);
   const tag = (i, sec, inApp) => { const n = paperN(sec); if (!n) return; out[i] = inApp ? out[i] + ` + done on paper (${paperLabel(sec)})` : out[i].replace(/:.*$/, `: done on paper (${paperLabel(sec)})`); };
-  tag(0, 'M:tt', m.tt?.score != null); tag(1, 'M:sums', sums.length || (M.sums || []).some((x, i) => inks[W.id + '-sum' + i]?.hasInk())); tag(2, 'M:problems', pok || Object.values(m.problems || {}).some(o => Object.keys(o).length) || (M.problems || []).some((x, i) => inks[W.id + '-prob' + i]?.hasInk()));
-  return out;
+  tag(0, 'M:tt', m.tt?.score != null); tag(1, 'M:sums', sums.length || (M.sums || []).some((x, i) => inks[W.id + '-sum' + i]?.hasInk())); if (!(M.sums || []).length && !paperN('M:sums')) out[1] = null; tag(2, 'M:problems', pok || Object.values(m.problems || {}).some(o => Object.keys(o).length) || (M.problems || []).some((x, i) => inks[W.id + '-prob' + i]?.hasInk()));
+  return out.filter(Boolean);
 }
 
 // ===================== REPORT PDF =====================

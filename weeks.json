@@ -1048,5 +1048,426 @@
     }
    ]
   }
+ },
+ {
+  "id": "t1b-w2",
+  "title": "Term 1B · Week 2",
+  "order": 8,
+  "pattern": {
+   "title": "Words ending in -ssion",
+   "tip": "These words end in -ssion with a double s, and the ending sounds like “shun”. Many come from words that end in -ss or -mit (discuss → discussion, permit → permission). Tap a word to hear it."
+  },
+  "words": [
+   "expression",
+   "discussion",
+   "confession",
+   "permission",
+   "admission",
+   "transmission",
+   "possession",
+   "profession",
+   "depression",
+   "impression"
+  ],
+  "sentences": {
+   "expression": "She had a happy expression on her face.",
+   "discussion": "We had a long discussion about the school trip.",
+   "confession": "He made a confession: he had eaten the last biscuit.",
+   "permission": "You need permission to leave the classroom.",
+   "admission": "Admission to the museum is free for children.",
+   "transmission": "The radio transmission was full of crackles.",
+   "possession": "The old watch was his most treasured possession.",
+   "profession": "Teaching is a wonderful profession.",
+   "depression": "There was a small depression in the sand where the ball had landed.",
+   "impression": "The new pupil made a good impression on everyone."
+  },
+  "reading": {
+   "title": "The RMS Titanic",
+   "passages": []
+  },
+  "sheetMap": {
+   "R": {
+    "text": [
+     2,
+     3
+    ],
+    "questions": [
+     4,
+     5
+    ]
+   },
+   "M": {
+    "tt": [
+     1
+    ],
+    "sums": [],
+    "problems": [
+     2,
+     3,
+     4
+    ]
+   }
+  },
+  "quiz": [
+   {
+    "q": "1. What did RMS stand for? Tick one.",
+    "a": [
+     "Royal Mail Ship",
+     "Royal Marine Ship",
+     "Royal Mail Service",
+     "Regal Mail Ship"
+    ]
+   },
+   {
+    "q": "2. How many watertight compartments did the Titanic have? Tick one.",
+    "a": [
+     "16",
+     "15",
+     "20",
+     "4"
+    ]
+   },
+   {
+    "q": "3. Fill in the missing word: There were also ______ beautiful grand staircases made from polished oak, wrought iron and glass.",
+    "a": [
+     "two",
+     "four",
+     "three",
+     "many"
+    ]
+   },
+   {
+    "q": "3. Fill in the missing word: There were also two ______ grand staircases made from polished oak, wrought iron and glass.",
+    "a": [
+     "beautiful",
+     "enormous",
+     "wooden",
+     "famous"
+    ]
+   },
+   {
+    "q": "4. Look at the section called Construction. Find and copy one word that means the same as ‘large’.",
+    "a": [
+     "enormous",
+     "watertight",
+     "comfort",
+     "steel"
+    ]
+   },
+   {
+    "q": "Bonus: Which ship rescued the survivors?",
+    "a": [
+     "RMS Carpathia",
+     "SS Californian",
+     "RMS Olympic",
+     "HMHS Britannic"
+    ]
+   },
+   {
+    "q": "Bonus: In which city was the Titanic built?",
+    "a": [
+     "Belfast",
+     "Southampton",
+     "Liverpool",
+     "Cherbourg"
+    ]
+   },
+   {
+    "q": "Bonus: In which year was the wreck of the Titanic found?",
+    "a": [
+     "1985",
+     "1912",
+     "1975",
+     "1995"
+    ]
+   }
+  ],
+  "open": [
+   {
+    "q": "5. How long did the Titanic take to sink?",
+    "starters": "The Titanic took…",
+    "model": "The Titanic took 2 hours and 40 minutes to sink after it hit the iceberg."
+   },
+   {
+    "q": "6. How does the layout of the text help the reader to understand the information about the Titanic? Explain your answer.",
+    "starters": "The layout helps the reader because… For example,…",
+    "model": "The layout helps because the information is split into sections with clear headings, such as Construction, Tragedy and Aftermath, so the reader can quickly find the part they want. The pictures and captions show what the ship, the lifeboats and the life jackets looked like, and the glossary explains tricky words like ‘class’ and ‘compartments’."
+   },
+   {
+    "q": "7. Why do you think the Titanic remains a popular story? Explain your answer.",
+    "starters": "I think the Titanic is still a popular story because…",
+    "model": "I think the Titanic is still a popular story because it was supposed to be the biggest and safest ship, yet it sank on its very first voyage, which is shocking and sad. There were famous passengers on board, many people lost their lives, and lots of films, books and documentaries have been made about it."
+   },
+   {
+    "q": "8. How do you think Dr Robert Ballard felt when he found the Titanic? Explain your answer.",
+    "starters": "I think Dr Robert Ballard felt… because…",
+    "model": "I think Dr Robert Ballard felt excited and proud, because he had found one of the most famous ships in history 2.4 miles under the sea after a long search. He may also have felt sad, because so many people had died there."
+   }
+  ],
+  "maths": {
+   "title": "Maths Group 8 · Term 1B Week 2",
+   "unit": "Compare calculations · Problem solving",
+   "intro": "On Friday there is a mixed times-tables test — practise the 30 questions. The Compare Calculations sheet and the problem-solving sheet are due on Friday 13 November.",
+   "timesTables": [
+    {
+     "q": "9 × 7",
+     "a": 63
+    },
+    {
+     "q": "96 ÷ 12",
+     "a": 8
+    },
+    {
+     "q": "☐ × 6 = 54",
+     "a": 9
+    },
+    {
+     "q": "11 × 8",
+     "a": 88
+    },
+    {
+     "q": "45 ÷ 5",
+     "a": 9
+    },
+    {
+     "q": "12 × ☐ = 108",
+     "a": 9
+    },
+    {
+     "q": "72 ÷ 9",
+     "a": 8
+    },
+    {
+     "q": "☐ ÷ 7 = 8",
+     "a": 56
+    },
+    {
+     "q": "4 × 12",
+     "a": 48
+    },
+    {
+     "q": "88 ÷ 11",
+     "a": 8
+    },
+    {
+     "q": "7 × ☐ = 84",
+     "a": 12
+    },
+    {
+     "q": "63 ÷ 9",
+     "a": 7
+    },
+    {
+     "q": "3 × 11",
+     "a": 33
+    },
+    {
+     "q": "144 ÷ 12",
+     "a": 12
+    },
+    {
+     "q": "☐ × 8 = 56",
+     "a": 7
+    },
+    {
+     "q": "100 ÷ 10",
+     "a": 10
+    },
+    {
+     "q": "12 × 6",
+     "a": 72
+    },
+    {
+     "q": "81 ÷ ☐ = 9",
+     "a": 9
+    },
+    {
+     "q": "5 × 7",
+     "a": 35
+    },
+    {
+     "q": "☐ ÷ 12 = 9",
+     "a": 108
+    },
+    {
+     "q": "8 × 9",
+     "a": 72
+    },
+    {
+     "q": "132 ÷ 11",
+     "a": 12
+    },
+    {
+     "q": "6 × ☐ = 72",
+     "a": 12
+    },
+    {
+     "q": "56 ÷ 8",
+     "a": 7
+    },
+    {
+     "q": "12 × 11",
+     "a": 132
+    },
+    {
+     "q": "☐ × 4 = 48",
+     "a": 12
+    },
+    {
+     "q": "121 ÷ 11",
+     "a": 11
+    },
+    {
+     "q": "10 × ☐ = 70",
+     "a": 7
+    },
+    {
+     "q": "108 ÷ 9",
+     "a": 12
+    },
+    {
+     "q": "☐ ÷ 6 = 12",
+     "a": 72
+    }
+   ],
+   "sums": [],
+   "problems": [
+    {
+     "title": "1) Compare Calculations — complete the bar models",
+     "pic": "📊",
+     "text": "Complete the bar models to represent the calculations 641 + 822 and 435 + 822. Write the missing number in the empty part of each bar (you can draw on the sheet page above).",
+     "parts": [
+      {
+       "q": "a) The empty part of bar model a) is…",
+       "type": "number",
+       "answer": 641,
+       "hint": "The other part of the bar is 822."
+      },
+      {
+       "q": "b) The empty part of bar model b) is…",
+       "type": "number",
+       "answer": 435,
+       "hint": "The shorter bar."
+      },
+      {
+       "q": "c) Explain how you know which calculation has the greater answer without completing the calculations.",
+       "type": "text",
+       "model": "Both calculations add the same number, 822. 641 is greater than 435, so 641 + 822 must have the greater answer. You can see it in the bar models too: bar a) is longer than bar b)."
+      }
+     ]
+    },
+    {
+     "title": "3) Put these calculations in ascending order",
+     "pic": "📶",
+     "text": "A 952 − 654 · B 952 − 645 · C 1052 − 546 · D 952 − 546 · E 932 − 624 · F 1052 − 545. Look for patterns to help you compare — you should not need to complete the calculations.",
+     "parts": [
+      {
+       "q": "Write the letters from smallest to largest (for example: C A F …)",
+       "type": "exact",
+       "answer": [
+        "ABEDCF",
+        "A B E D C F",
+        "A, B, E, D, C, F"
+       ],
+       "hint": "Compare pairs first: A and B have the same start; C and F have the same start; D and C differ by exactly 100."
+      }
+     ]
+    },
+    {
+     "title": "2) Add <, > or = to compare the number statements",
+     "pic": "⚖️",
+     "text": "Look for patterns to help you compare — you should not need to complete the calculations.",
+     "parts": [
+      {
+       "q": "a) 82 + 96 ☐ 72 + 96",
+       "type": "choice",
+       "options": [
+        "<",
+        ">",
+        "="
+       ],
+       "answer": ">",
+       "hint": "Both add 96. Which first number is bigger?"
+      },
+      {
+       "q": "b) 58 + 43 ☐ 59 + 42",
+       "type": "choice",
+       "options": [
+        "<",
+        ">",
+        "="
+       ],
+       "answer": "=",
+       "hint": "One more on one side, one less on the other."
+      },
+      {
+       "q": "c) 630 − 52 ☐ 630 − 25",
+       "type": "choice",
+       "options": [
+        "<",
+        ">",
+        "="
+       ],
+       "answer": "<",
+       "hint": "Taking away more leaves less."
+      },
+      {
+       "q": "d) 341 + 527 ☐ 517 + 341",
+       "type": "choice",
+       "options": [
+        "<",
+        ">",
+        "="
+       ],
+       "answer": ">",
+       "hint": "Both have 341. Compare 527 and 517."
+      },
+      {
+       "q": "e) 905 − 438 ☐ 900 − 433",
+       "type": "choice",
+       "options": [
+        "<",
+        ">",
+        "="
+       ],
+       "answer": "=",
+       "hint": "Both numbers went down by 5, so the difference stays the same."
+      }
+     ]
+    },
+    {
+     "title": "1) Theme park visitors (problem solving)",
+     "pic": "🎢",
+     "text": "The total number of visitors at the theme park on Friday and Saturday was 10 208. On Saturday, there were 2654 more visitors than on Friday.\nHow many visitors were there on each day? Use the bar model to help you.",
+     "parts": [
+      {
+       "q": "Visitors on Friday",
+       "type": "number",
+       "answer": 3777,
+       "hint": "Take the extra 2654 away from the total first, then share what is left equally between the two days."
+      },
+      {
+       "q": "Visitors on Saturday",
+       "type": "number",
+       "answer": 6431,
+       "hint": "Friday + 2654. Check: Friday + Saturday should make 10 208."
+      }
+     ]
+    },
+    {
+     "title": "2) a) The Year 5 performance (problem solving)",
+     "pic": "🎭",
+     "text": "On Monday, 168 parents watched the Year 5 performance and on Tuesday, 29 fewer parents watched. Altogether, how many parents watched the performance?",
+     "parts": [
+      {
+       "q": "Parents altogether",
+       "type": "number",
+       "answer": 307,
+       "hint": "Work out Tuesday first (168 − 29), then add both days."
+      }
+     ]
+    }
+   ]
+  }
  }
 ]
