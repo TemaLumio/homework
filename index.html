@@ -115,7 +115,7 @@
   .model { background: var(--ok-soft); border-radius: 12px; padding: 12px; }
   ul.plain { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; }
   details summary { cursor: pointer; font: 700 1rem var(--body); color: var(--muted); }
-  .status { font-size: .95rem; }
+  .status { font-size: .95rem;  white-space: pre-line; }
   input[type=file] { font: 500 .95rem var(--body); color: var(--fg); max-width: 100%; }
 </style>
 
@@ -1090,6 +1090,19 @@ function buildMathsPdf(name) {
 }
 document.querySelector('.tab[data-tab="report"]').addEventListener('click', refreshRecorded);
 $('childName').addEventListener('change', e => { try { localStorage.setItem('spag-name', e.target.value); } catch (err) {} });
+function missingSections(subj) { // sections with no work on this device at all, for the warning next to "Make the PDF"
+  const r = results(), m = r.maths || {}, out = [];
+  if (subj === 'SPAG') {
+    if (r.spellBest == null && !paperN('S:spelling')) out.push('Spelling test');
+    const inkOpen = (W.open || []).some((t, i) => inks[W.id + '-' + i]?.hasInk());
+    if (!Object.keys(r.quizAnswers || {}).length && !Object.keys(r.answers || {}).length && !inkOpen && !paperN('R:questions')) out.push('Reading questions');
+  } else if (W.maths) {
+    if (m.tt?.score == null && !paperN('M:tt')) out.push('Times tables');
+    if ((W.maths.sums || []).length && !Object.keys(m.sums || {}).length && !(W.maths.sums || []).some((x, i) => inks[W.id + '-sum' + i]?.hasInk()) && !paperN('M:sums')) out.push('Column sums');
+    if ((W.maths.problems || []).length && !Object.values(m.problems || {}).some(o => Object.keys(o).length) && !(W.maths.problems || []).some((x, i) => inks[W.id + '-prob' + i]?.hasInk()) && !paperN('M:problems')) out.push('Problems');
+  }
+  return out;
+}
 function recordedSummary() {
   const r = results(), m = r.maths || {}; const inkN = Object.keys(inks).filter(k => k.startsWith(W.id) && !k.startsWith(W.id + '-pg') && inks[k].hasInk()).length; const pgN = Object.keys(inks).filter(k => k.startsWith(W.id + '-pg') && inks[k].hasInk()).length;
   const parts = [];
@@ -1107,7 +1120,8 @@ document.querySelectorAll('[data-rep]').forEach(card => {
   const subj = card.dataset.rep, st = card.querySelector('.st'), snd = card.querySelector('.snd'), sv = card.querySelector('.sv'); let pdf = null;
   card.querySelector('.mk').onclick = () => {
     st.textContent = 'Building the PDF…';
-    try { const name = $('childName').value.trim(); pdf = subj === 'SPAG' ? buildSpagPdf(name) : buildMathsPdf(name); snd.hidden = sv.hidden = false; st.textContent = 'Ready: ' + pdf.fname; refreshRecorded(); }
+    try { const name = $('childName').value.trim(); pdf = subj === 'SPAG' ? buildSpagPdf(name) : buildMathsPdf(name); snd.hidden = sv.hidden = false; st.textContent = 'Ready: ' + pdf.fname; refreshRecorded();
+      const gaps = missingSections(subj); if (gaps.length) st.textContent += `\n⚠️ Nothing recorded here for: ${gaps.join(', ')} — the PDF will say "not answered". If this work was done, it was done in another copy of the app (Safari vs Home Screen icon vs Claude): make the PDF there, or add a photo of the finished page.`; }
     catch (e) { st.textContent = 'Could not make the PDF: ' + (e.message || e.code || ''); }
   };
   sv.onclick = () => { if (!pdf) return; const a = document.createElement('a'); a.href = URL.createObjectURL(pdf.blob); a.download = pdf.fname; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000); st.textContent = 'Saved to Downloads (Files app).'; };
